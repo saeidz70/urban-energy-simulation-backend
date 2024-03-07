@@ -1,0 +1,11 @@
+{
+  "input_dir": "inputs/",
+  "buildings_dir": "inputs/buildings/",
+  "bui_archetypes_dir": "inputs/building_archetypes/",
+  "census_data_dir": "inputs/census_data/",
+  "study_area_dir": "inputs/study_area",
+  "util_network_dir": "inputs/utility_network/",
+  "weather_dir": "inputs/weather/",
+  "output_dir": "outputs/"
+
+}
