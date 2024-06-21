@@ -17,4 +17,4 @@ if __name__ == '__main__':
 
     # Processing Height
     height_process = HeightProcess(config_path)
-    height_process.process_height()
+    height_process.calculate_heights_from_dtm_dsm()
