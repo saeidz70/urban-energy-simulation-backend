@@ -1,6 +1,6 @@
 import json
 import geopandas as gpd
-import pandas as pd
+import re
 from model_extraction.processing.dsm_height_calculator import BuildingHeightCalculator
 
 
@@ -28,18 +28,21 @@ class HeightProcess:
         self.buildings_gdf['height_dsm'] = heights
         return heights
 
+    def clean_height(self, height):
+        if isinstance(height, str):
+            height = re.sub(r'[^\d.]+', '', height)
+        try:
+            return float(height)
+        except ValueError:
+            return None
+
     def process_height(self):
         if 'height' in self.buildings_gdf.columns:
-            try:
-                self.buildings_gdf['height'] = self.buildings_gdf['height'].astype(int)
-            except ValueError:
-                self.buildings_gdf['height'] = pd.to_numeric(self.buildings_gdf['height'], errors='coerce')
-
+            # Clean height values and convert to float
+            self.buildings_gdf['height'] = self.buildings_gdf['height'].apply(self.clean_height)
         elif 'building:levels' in self.buildings_gdf.columns:
             self.buildings_gdf['height'] = self.buildings_gdf['building:levels'].astype(int) * 3
-
         else:
-            # Calculate height from DTM & DSM
             self.calculate_heights_from_dtm_dsm()
 
         self.buildings_gdf.to_file(self.building_path, driver='GeoJSON')

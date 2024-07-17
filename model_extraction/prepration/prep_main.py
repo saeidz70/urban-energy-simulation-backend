@@ -20,9 +20,10 @@ class PrepMain:
         bounding_box = Polygon(self.bbox_coords)
         osm_gdf = self.osm_processor.fetch_osm_data(bounding_box)
         shapefile_gdf = self.shapefile_processor.process_shapefile(self.shapefile_path, bounding_box)
-        # osm_gdf = osm_gdf.to_crs(epsg=32632)
-        # shapefile_gdf = shapefile_gdf.to_crs(epsg=32632)
+        osm_gdf = osm_gdf.to_crs(epsg=32632)
+        shapefile_gdf = shapefile_gdf.to_crs(epsg=32632)
         final_gdf = gpd.overlay(osm_gdf, shapefile_gdf, how='intersection')
+        final_gdf.insert(0, 'b_id', range(1, len(final_gdf) + 1))
         return final_gdf
 
     def plot_and_save(self, final_gdf):

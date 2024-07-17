@@ -38,4 +38,4 @@ class ProcessCensus:
             print(f"Data successfully merged and saved to {self.output_buildings_census_path}")
 
             return merged_gdf
-
+        
