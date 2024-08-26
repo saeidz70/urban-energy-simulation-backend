@@ -1,3 +1,5 @@
+from model_extraction.prepration.data_cleaning.clean_null import CleanGeoData
+from model_extraction.prepration.data_cleaning.filter_area import BuildingAreaCalculator
 from model_extraction.prepration.read_data.area_selection import CensusSelector
 from model_extraction.prepration.read_data.data_integration import DataIntegration
 from model_extraction.prepration.read_data.get_selected_boundries import GetSelectedBoundaries
@@ -14,11 +16,7 @@ class PrepMain:
 
     def getBoundaries(self):
         extractor = GetSelectedBoundaries(self.config_path)
-        geojson_data = extractor.load_geojson()
-        extractor.extract_polygons(geojson_data)
-        extractor.combine_polygons()
-        extractor.plot_boundary()
-        extractor.save_boundary()
+        extractor.process_boundaries()
 
     def osm_building_extraction(self):
         osm_building_extractor = OSMBuildingExtractor(self.config_path)
@@ -30,9 +28,13 @@ class PrepMain:
         integrated_gdf = integrator.integrate_buildings()
         integrator.save_integrated(integrated_gdf)
 
-    # def clean_data(self):
-    #     clean_data = CleanGeoData(self.config_path)
-    #     clean_data.clean_data()
+    def filter_area(self):
+        filter_area = BuildingAreaCalculator(self.config_path)
+        filter_area.process_buildings()
+
+    def clean_data(self):
+        clean_data = CleanGeoData(self.config_path)
+        clean_data.clean_data()
 
     # def process_census_built_year(self):
     #     process_census_built_year = CensusBuiltYear(self.config_path)

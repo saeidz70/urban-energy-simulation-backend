@@ -1,5 +1,7 @@
 import json
+
 import geopandas as gpd
+
 
 class ProcessAreas:
     def __init__(self, config_path):

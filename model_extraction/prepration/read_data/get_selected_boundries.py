@@ -53,3 +53,9 @@ class GetSelectedBoundaries:
         combined_gdf = gpd.GeoDataFrame(geometry=[self.combined_polygon])
         combined_gdf.to_file(self.output_file_path, driver="GeoJSON")
         print(f"Polygon boundary extracted and saved to {self.output_file_path}.")
+
+    def process_boundaries(self):
+        self.extract_polygons(self.geo_data)
+        self.combine_polygons()
+        self.plot_boundary()
+        self.save_boundary()

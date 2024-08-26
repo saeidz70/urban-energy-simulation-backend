@@ -9,7 +9,7 @@ class CleanGeoData:
     def __init__(self, config_path):
         with open(config_path, 'r') as f:
             config = json.load(f)
-        self.input_file_path = config['shapefile_path']
+        self.input_file_path = config['osm_integrated_selected_path']
         self.output_file_path = config['null_cleaned_file_path']
         self.geo_data = gpd.read_file(self.input_file_path)
 
