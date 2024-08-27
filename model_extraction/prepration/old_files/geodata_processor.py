@@ -4,9 +4,9 @@ import geopandas as gpd
 from matplotlib import pyplot as plt
 from shapely.geometry import Polygon
 
-from model_extraction.prepration.built_year.osm_built_year import OSMDataFetcher
-from model_extraction.prepration.read_data.osm_data import ProcessOsm
-from model_extraction.prepration.read_data.shapefile_data import ProcessShapefile
+from model_extraction.prepration.old_files.osm_data import ProcessOsm
+from model_extraction.prepration.old_files.shapefile_data import ProcessShapefile
+from model_extraction.processing.built_year.osm_built_year import OsmBuiltYear
 
 
 class GeoDataProcessor:
@@ -28,7 +28,7 @@ class GeoDataProcessor:
         self.default_epsg_code = config['DEFAULT_EPSG_CODE']
         self.osm_processor = ProcessOsm()
         self.shapefile_processor = ProcessShapefile()
-        self.osm_data_fetcher = OSMDataFetcher()
+        self.osm_data_fetcher = OsmBuiltYear()
         self.gdf = None
 
     def save_geodataframe(self, path):

@@ -118,7 +118,3 @@ class CensusBuiltYear:
 
         return self.buildings_gdf
 
-# Example usage:
-# config_path = '/mnt/data/configuration.json'
-# processor = CensusBuiltYear(config_path)
-# processor.assign_built_year()

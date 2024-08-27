@@ -28,18 +28,18 @@ class PrepMain:
         integrated_gdf = integrator.integrate_buildings()
         integrator.save_integrated(integrated_gdf)
 
-    def filter_area(self):
-        filter_area = BuildingAreaCalculator(self.config_path)
-        filter_area.process_buildings()
-
     def clean_data(self):
         clean_data = CleanGeoData(self.config_path)
         clean_data.clean_data()
 
-    # def process_census_built_year(self):
-    #     process_census_built_year = CensusBuiltYear(self.config_path)
-    #     process_census_built_year.assign_built_year()
+    def filter_area(self):
+        filter_area = BuildingAreaCalculator(self.config_path)
+        filter_area.process_buildings()
 
-    # def process_data(self):
-    #     geo_processor = GeoDataProcessor(self.config_path)
-    #     geo_processor.process_data()
+    def run_all_preparations(self):
+        self.select_census_sections()
+        self.getBoundaries()
+        self.osm_building_extraction()
+        self.data_integration()
+        self.clean_data()
+        self.filter_area()

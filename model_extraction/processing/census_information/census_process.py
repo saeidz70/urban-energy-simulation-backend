@@ -1,7 +1,7 @@
 import json
 
-import pandas as pd
 import geopandas as gpd
+import pandas as pd
 
 
 class ProcessCensus:

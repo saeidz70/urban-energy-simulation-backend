@@ -94,6 +94,17 @@
         "E15": "2001-2005",
         "E16": "2005-"
       },
+      "building_use_columns": {
+        "E3": "residential",
+        "E4": "non residential"
+      },
+      "population_columns": {
+        "PF1": "Num_families",
+        "P1": "Population"
+      },
+
+
+
       "geometry": "geometry",
       "area": "area",
       "population": "population",
