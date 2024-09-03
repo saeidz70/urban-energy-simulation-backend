@@ -1,120 +1,81 @@
 import json
-import random
 
+import geojson
 import geopandas as gpd
-import pandas as pd
 
 
 class CensusBuiltYear:
     def __init__(self, config_path):
-        with open(config_path, 'r') as f:
-            config = json.load(f)
-        self.building_path = config['shapefile_path']
-        self.buildings_gdf = gpd.read_file(self.building_path)
-
-        # Read periods from configuration file
-        self.census_columns = list(config['attributes']['census']['built_year'].keys())
-        self.period_mapping = config['attributes']['census']['built_year']
-
-        # Calculate the median year for each period dynamically based on these columns
+        self.config = self.load_config(config_path)
+        self.input_path = self.config["input_params"]["construction_year"]["input"]
+        self.output_path = self.config["input_params"]["construction_year"]["output"]
+        self.census_columns = self.config["input_params"]["construction_year"]["census_columns"]
+        self.year_mapping = self.config["input_params"]["construction_year"]["year_mapping"]
         self.median_years = self.calculate_median_years()
 
+    def load_config(self, path):
+        with open(path, 'r') as file:
+            return json.load(file)
+
     def calculate_median_years(self):
-        # Function to calculate the median year for each period based on the configuration file
         median_years = {}
-        for column, period in self.period_mapping.items():
-            try:
-                if '-' in period:
-                    parts = period.split('-')
-                    if parts[0] == '':
-                        end = int(parts[1])
-                        median_years[column] = end
-                    elif parts[1] == '':
-                        start = int(parts[0])
-                        median_years[column] = start + 5  # assuming a placeholder median for open-ended periods
-                    else:
-                        start, end = map(int, parts)
-                        median_years[column] = (start + end) // 2
-                elif period.startswith('-'):
-                    end = int(period.replace('-', ''))
-                    median_years[column] = end
-                elif period.endswith('-'):
-                    start = int(period.replace('-', ''))
-                    median_years[column] = start + 5  # assuming a placeholder median for open-ended periods
+        for key, value in self.year_mapping.items():
+            if '-' in value:
+                parts = value.split('-')
+                if parts[0].isdigit() and parts[1].isdigit():
+                    start, end = map(int, parts)
+                    median_years[key] = (start + end) // 2
                 else:
-                    raise ValueError(f"Invalid period format for column {column}: {period}")
-            except ValueError:
-                raise ValueError(f"Invalid period format for column {column}: {period}")
+                    median_years[key] = None
+            elif value.startswith('-') and value[1:].isdigit():
+                median_years[key] = int(value)
+            elif value.endswith('-') and value[:-1].isdigit():
+                median_years[key] = int(value[:-1])
+            else:
+                median_years[key] = None
         return median_years
 
-    def assign_built_year(self):
-        # Check data types in census columns and convert to numeric if needed
-        for column in self.census_columns:
-            self.buildings_gdf[column] = pd.to_numeric(self.buildings_gdf[column], errors='coerce').fillna(0)
+    def load_buildings(self):
+        with open(self.input_path, 'r') as file:
+            return geojson.load(file)
 
-        # Debugging: Print a few rows to check data content
-        print("Sample data from GeoDataFrame:")
-        print(self.buildings_gdf.head())
+    def assign_construction_year(self):
+        buildings = self.load_buildings()
+        for feature in buildings['features']:
+            census_id = feature['properties'].get(self.config["input_params"]["construction_year"]["censusID"])
+            if census_id:
+                building_counts = {key: int(feature['properties'].get(key, 0)) for key in self.census_columns}
+                total_buildings = sum(building_counts.values())
+                if total_buildings > 0:
+                    weighted_sum = sum(self.median_years[key] * building_counts[key] for key in self.census_columns if
+                                       self.median_years[key] is not None)
+                    construction_year = round(weighted_sum / total_buildings)
 
-        # Function to assign a built year based on the percentage distribution in the census section
-        def get_random_year(group):
-            # Convert strings to integers and ensure values are numeric
-            periods = {key: group[key].sum() for key in self.census_columns}
+                    if construction_year < 1919:
+                        construction_year = 1919
+                    elif construction_year > 2005:
+                        construction_year = 2005
 
-            # Debugging: Check the computed periods
-            print(f"Computed periods for group: {periods}")
+                    feature['properties']['built_year'] = construction_year
+                else:
+                    feature['properties']['built_year'] = None
+            else:
+                feature['properties']['built_year'] = None
+        return buildings
 
-            total_buildings = sum(periods.values())
-            if total_buildings == 0:
-                print(f"No buildings found in any period for group.")
-                return pd.Series([None] * len(group))  # Return a Series of None if there are no buildings
+    def reorder_columns(self, gdf):
+        cols = list(gdf.columns)
+        if 'volume' in cols and 'built_year' in cols:
+            volume_index = cols.index('volume')
+            cols.insert(volume_index + 1, cols.pop(cols.index('built_year')))
+            gdf = gdf[cols]
+        return gdf
 
-            # Create a cumulative distribution
-            cumulative_distribution = []
-            cumulative = 0
-            for column, count in periods.items():
-                proportion = count / total_buildings
-                cumulative += proportion
-                cumulative_distribution.append((cumulative, self.median_years[column]))
+    def save_output(self, buildings):
+        gdf = gpd.GeoDataFrame.from_features(buildings['features'])
+        gdf = self.reorder_columns(gdf)
+        gdf.to_file(self.output_path, driver='GeoJSON')
 
-            # Assign a construction year based on the cumulative distribution
-            def choose_year():
-                rand_value = random.random()
-                for cumulative, year in cumulative_distribution:
-                    if rand_value <= cumulative:
-                        return year
-                return None  # Fallback, should not happen
-
-            # Assign a random year to each building in the group
-            return group.apply(lambda _: choose_year(), axis=1)
-
-        # Check if 'SEZ2011' column exists
-        if 'SEZ2011' not in self.buildings_gdf.columns:
-            print("SEZ2011 column is missing in the data.")
-            return
-
-        # Apply the function to each census section (grouped by SEZ2011)
-        try:
-            self.buildings_gdf['b_year_ces'] = self.buildings_gdf.groupby('SEZ2011').apply(
-                get_random_year).reset_index(level=0, drop=True)
-        except ValueError as e:
-            print(f"Error during groupby operation: {e}")
-            return
-
-        # Debugging: Print DataFrame to check if the column is added correctly
-        print("DataFrame after adding 'b_year_ces' column:")
-        print(self.buildings_gdf.head())
-
-        # Save the updated GeoDataFrame
-        self.buildings_gdf.to_file(self.building_path, driver='GeoJSON')
-        print(f"GeoJSON with assigned built years successfully saved to {self.building_path}")
-
-        # Reload the GeoJSON file to check if the column exists
-        reloaded_gdf = gpd.read_file(self.building_path)
-        if 'b_year_ces' in reloaded_gdf.columns:
-            print("Column 'b_year_ces' is present in the saved GeoJSON file.")
-        else:
-            print("Column 'b_year_ces' is NOT present in the saved GeoJSON file.")
-
-        return self.buildings_gdf
-
+    def run(self):
+        buildings = self.assign_construction_year()
+        self.save_output(buildings)

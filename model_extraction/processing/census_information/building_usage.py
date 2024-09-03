@@ -1,67 +1,70 @@
 import json
-
-import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
+from typing import Dict, Any
 
 
-class BuildingUsagePredictor:
-    def __init__(self, config_path):
-        with open(config_path, 'r') as f:
-            config = json.load(f)
-        self.input_file = config['kriging_output_path']
-        self.df = None
-        self.model = None
-        self.features = ['osm_building_use', 'E3', 'E4']
-        self.target = 'building_use'  # This will be created, not loaded
+class BuildingUsageProcessor:
+    def __init__(self, config_path: str):
+        self.config = self.load_config(config_path)
+        self.input_file = self.config["input_params"]["building_use"]["input"]
+        self.output_file = self.config["input_params"]["building_use"]["output"]
+        self.old_column_name = self.config["input_params"]["building_use"]["old_column_name"]
+        self.new_column_name = self.config["input_params"]["building_use"]["new_column_name"]
+        self.allowed_buildings = self.config["input_params"]["building_use"]["allowed_buildings"]
+        self.data = None
 
-    def load_data(self):
-        # Load the data from the input file
-        with open(self.input_file, 'r') as f:
-            geojson_data = json.load(f)
-        # Convert geojson to DataFrame
-        self.df = pd.json_normalize(geojson_data['features'])
-        self.df.columns = self.df.columns.str.replace('properties.', '')
-        self.df.rename(columns={'building': 'osm_building_use'}, inplace=True)
+    def load_config(self, config_path: str) -> Dict[str, Any]:
+        try:
+            with open(config_path, 'r') as file:
+                return json.load(file)
+        except FileNotFoundError:
+            print(f"Configuration file {config_path} not found.")
+            raise
+        except json.JSONDecodeError:
+            print(f"Error decoding JSON from the configuration file {config_path}.")
+            raise
 
-        # Debugging print to check the columns
-        print("Columns after loading data:", self.df.columns)
+    def load_data(self) -> None:
+        try:
+            with open(self.input_file, 'r') as file:
+                self.data = json.load(file)
+            print(f"Data loaded from {self.input_file}")
+        except FileNotFoundError:
+            print(f"Input file {self.input_file} not found.")
+            raise
+        except json.JSONDecodeError:
+            print(f"Error decoding JSON from the input file {self.input_file}.")
+            raise
 
-    def preprocess_data(self):
-        # Encode categorical features
-        label_encoder = LabelEncoder()
-        self.df['osm_building_use'] = label_encoder.fit_transform(self.df['osm_building_use'].astype(str))
-        self.df['E3'] = self.df['E3'].astype(float)
-        self.df['E4'] = self.df['E4'].astype(float)
+    def save_data(self) -> None:
+        try:
+            with open(self.output_file, 'w') as file:
+                json.dump(self.data, file, indent=4)
+            print(f"Data saved to {self.output_file}")
+        except IOError:
+            print(f"Error writing to the output file {self.output_file}.")
+            raise
 
-        # 'building_use' column will be created during prediction, not encoded here
-        print("Columns after preprocessing data:", self.df.columns)
+    def change_column_name(self) -> None:
+        for feature in self.data['features']:
+            if self.old_column_name in feature['properties']:
+                # Create a new dictionary with the modified column name but preserve order
+                new_properties = {}
+                for key, value in feature['properties'].items():
+                    if key == self.old_column_name:
+                        new_properties[self.new_column_name] = value
+                    else:
+                        new_properties[key] = value
+                feature['properties'] = new_properties
 
-    def train_model(self):
-        # Split the data into training and test sets
-        X = self.df[self.features]
-        y = self.df[self.target] if self.target in self.df else pd.Series(
-            [0] * len(self.df))  # Dummy target if not present
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    def filter_buildings(self) -> None:
+        self.data['features'] = [
+            feature for feature in self.data['features']
+            if feature['properties'].get(self.new_column_name) in self.allowed_buildings
+        ]
+        print(f"Buildings filtered to include only: {self.allowed_buildings}")
 
-        # Train a Random Forest Classifier
-        self.model = RandomForestClassifier(n_estimators=100, random_state=42)
-        self.model.fit(X_train, y_train)
-
-    def predict_building_usage(self):
-        # Predict the building usage
-        self.df[self.target] = self.model.predict(self.df[self.features])
-        print(f"Created column '{self.target}' with predicted values.")
-
-    def save_data(self):
-        # Save the updated data back to the file
-        with open(self.input_file, 'w') as f:
-            json.dump(self.df.to_dict(orient='records'), f, indent=4)
-
-    def run(self):
+    def process(self) -> None:
         self.load_data()
-        self.preprocess_data()
-        self.train_model()
-        self.predict_building_usage()
+        self.change_column_name()
+        self.filter_buildings()
         self.save_data()

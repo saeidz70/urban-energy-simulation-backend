@@ -1,11 +1,13 @@
 {
   "shapefile_path": "data_source/input_files/shp/Torino_sezCens_data.geojson",
   "selected_shapefile_path": "data_source/output_files/selected_shapefile.geojson",
+  "added_buildings_file_path": "data_source/output_files/buildings_added.geojson",
   "osm_integrated_selected_path": "data_source/output_files/osm_integrated_selected.geojson",
   "selected_boundaries": "data_source/output_files/selected_boundaries.geojson",
   "osm_building_path": "data_source/output_files/OSM_building.geojson",
   "filtered_area_path": "data_source/output_files/filtered_area.geojson",
   "kriging_output_path": "data_source/output_files/kriging_output.geojson",
+  "Building_usage_path": "data_source/output_files/Building_usage.geojson",
   "null_cleaned_file_path": "data_source/output_files/null_cleaned.geojson",
   "census_path": "data_source/input_files/census/R01_census_2011.csv",
   "building_path": "data_source/output_files/selected_building.geojson",
@@ -74,6 +76,75 @@
       45.067413
     ]
   ],
+  "input_params": {
+    "height": {
+      "input": "data_source/output_files/filtered_area.geojson",
+      "output": "data_source/output_files/kriging_output.geojson",
+      "kriging_target_column": "height"
+    },
+    "building_use": {
+      "input": "data_source/output_files/kriging_output.geojson",
+      "output": "data_source/output_files/Building_usage.geojson",
+      "allowed_buildings": [
+        "apartments",
+        "residential",
+        "house"
+      ],
+      "old_column_name": "building",
+      "new_column_name": "osm_building_use"
+    },
+    "population": {
+      "input": "data_source/output_files/Building_usage.geojson",
+      "output": "data_source/output_files/Building_population.geojson",
+      "population": "P1",
+      "volume": "volume",
+      "censusID": "SEZ2011"
+    },
+    "family": {
+      "input": "data_source/output_files/Building_population.geojson",
+      "output": "data_source/output_files/Building_family.geojson",
+      "family": "PF1",
+      "volume": "volume",
+      "censusID": "SEZ2011"
+    },
+    "construction_year": {
+      "input": "data_source/output_files/Building_family.geojson",
+      "output": "data_source/output_files/Building_construction_year.geojson",
+      "census_columns": [
+        "E8",
+        "E9",
+        "E10",
+        "E11",
+        "E12",
+        "E13",
+        "E14",
+        "E15",
+        "E16"
+      ],
+      "censusID": "SEZ2011",
+      "year_mapping": {
+        "E8": "-1919",
+        "E9": "1919-1945",
+        "E10": "1946-1960",
+        "E11": "1961-1970",
+        "E12": "1971-1980",
+        "E13": "1981-1990",
+        "E14": "1991-2000",
+        "E15": "2001-2005",
+        "E16": "2005-"
+      }
+    },
+    "tabula": {
+      "building_input": "data_source/output_files/Building_construction_year.geojson",
+      "tabula_input": "data_source/input_files/TABULA/TABULA_matching.csv",
+      "output": "data_source/output_files/Building_tabula.geojson",
+      "usage_column": "osm_building_use",
+      "year_column": "built_year",
+      "family_number": "families"
+    }
+  },
+
+
   "attributes": {
     "building": {
       "height": "h_tot",
@@ -102,9 +173,6 @@
         "PF1": "Num_families",
         "P1": "Population"
       },
-
-
-
       "geometry": "geometry",
       "area": "area",
       "population": "population",
@@ -117,12 +185,13 @@
       "green": "green",
       "other": "other"
     }
-  },"limits": {
+  },
+  "limits": {
       "min_height": 3,
       "max_height": 100,
       "min_area": 20,
       "max_area": 100000,
-      "avg_floor_height": 3.1
+    "avg_floor_height": 3.5
 },
   "features": [
     "b_id",

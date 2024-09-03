@@ -4,7 +4,8 @@ import re
 import geopandas as gpd
 import pandas as pd
 
-from model_extraction.processing.height_processing.dsm_height_calculator import BuildingHeightCalculator
+from model_extraction.processing.geometry_calculation.height_processing.dsm_height_calculator import \
+    BuildingHeightCalculator
 
 
 class HeightProcess:
