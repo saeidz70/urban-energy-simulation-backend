@@ -64,6 +64,14 @@ class ProcessMain:
         self.process_census_built_year()
         self.process_osm_built_year()
         self.process_archetype()
+        self.process_floor()
+        self.population_calculator()
+        self.family_calculator()
+
+
+
+
+
 
     # def process_areas(self):
     #     process_areas = ProcessAreas(self.config_path)

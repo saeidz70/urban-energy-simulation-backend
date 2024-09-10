@@ -28,11 +28,16 @@ class TabulaAssigner:
         tabula_mapping = {}
         for index, row in tabula_df.iterrows():
             years = row['YEAR'].split(' ... ')
-            if len(years) == 2:
+
+            # Check if years[0] and years[1] are not empty before converting
+            if len(years) == 2 and years[0].strip() and years[1].strip():
                 start_year, end_year = int(years[0]), int(years[1])
-            else:
+            elif len(years) == 1 and years[0].strip():  # Only one year, open-ended range
                 start_year = int(years[0])
                 end_year = float('inf')  # Use infinity for open-ended ranges
+            else:
+                continue  # Skip if no valid year range is found
+
             for year in range(start_year, int(end_year) + 1):
                 tabula_mapping[year] = {
                     'SFH': row['SFH'],

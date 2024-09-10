@@ -82,6 +82,7 @@
       "output": "data_source/output_files/kriging_output.geojson",
       "kriging_target_column": "height"
     },
+
     "building_use": {
       "input": "data_source/output_files/kriging_output.geojson",
       "output": "data_source/output_files/Building_usage.geojson",
@@ -193,27 +194,27 @@
       "max_area": 100000,
     "avg_floor_height": 3.5
 },
-  "features": [
-    "b_id",
-    "index",
-    "height",
-    "area",
-    "n_floors",
-    "net_leased_area",
-    "gross_floor_area",
-    "dest",
-    "year_of_construction",
-    "sez_cens",
-    "tot_area_persez",
-    "n_fam",
-    "construction_type",
-    "w2w",
-    "neighbours_surfaces",
-    "neighbours_ids",
-    "noWindow_surfaces",
-    "hvac_type",
-    "Tabula_type",
-    "Tabula_id",
-    "geometry"
-  ]
+  "features": {
+    "b_id": "string",
+    "index": "int",
+    "height": "int",
+    "area": "float",
+    "n_floors": "int",
+    "net_leased_area": "float",
+    "gross_floor_area": "float",
+    "dest": "(Usage) string",
+    "year_of_construction": "int",
+    "sez_cens": "int",
+    "tot_area_persez": "float",
+    "n_fam": "int",
+    "construction_type": "string",
+    "w2w": "float",
+    "neighbours_surfaces": "string",
+    "neighbours_ids": "List[int]",
+    "noWindow_surfaces": "float",
+    "hvac_type": "string",
+    "Tabula_type": "string",
+    "Tabula_id": "string",
+    "geometry": "Polygon"
+  }
 }
