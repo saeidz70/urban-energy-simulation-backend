@@ -1,7 +1,8 @@
 import json
 
 import geopandas as gpd
-import pandas as pd
+
+from model_extraction.data_manager.utility import UtilityProcess
 
 
 class FloorProcess:
@@ -10,33 +11,29 @@ class FloorProcess:
             self.config = json.load(f)
         self.building_path = self.config['Building_usage_path']
         self.avg_floor_height = self.config["limits"]['avg_floor_height']
-        self.buildings_gdf = gpd.read_file(self.building_path)
+        self.utility = UtilityProcess(config_path)
 
     def process_floors(self):
-        if 'height' not in self.buildings_gdf.columns:
-            raise ValueError("'height' column must be present in the dataset.")
+        buildings_gdf = gpd.read_file(self.building_path)
 
-        if 'building:levels' in self.buildings_gdf.columns:
-            self.buildings_gdf['building:levels'] = pd.to_numeric(self.buildings_gdf['building:levels'],
-                                                                  errors='coerce')
-            self.buildings_gdf['n_floor'] = self.buildings_gdf['building:levels']
-            missing_levels_mask = self.buildings_gdf['n_floor'].isnull()
-            self.buildings_gdf.loc[missing_levels_mask, 'n_floor'] = (
-                        self.buildings_gdf.loc[missing_levels_mask, 'height'] / self.avg_floor_height).round().astype(
-                int)
-        else:
-            self.buildings_gdf['n_floor'] = (self.buildings_gdf['height'] / self.avg_floor_height).round().astype(int)
+        # Try retrieving 'n_floor' for each building row using UtilityProcess
+        buildings_gdf['n_floor'] = buildings_gdf.apply(
+            lambda row: self.utility.process_feature('n_floor', gpd.GeoDataFrame([row])), axis=1
+        )
 
-        if 'building:levels' in self.buildings_gdf.columns:
-            self.buildings_gdf = self.buildings_gdf.drop(columns=['building:levels'])
+        # Identify buildings that are still missing 'n_floor'
+        missing_n_floor_mask = buildings_gdf['n_floor'].isnull()
 
-        if 'height' not in self.buildings_gdf.columns:
-            raise ValueError("'height' column must be present in the dataset.")
+        # Calculate missing 'n_floor' using 'height'
+        if missing_n_floor_mask.any():
+            if 'height' not in buildings_gdf.columns:
+                raise ValueError("'height' column must be present to calculate 'n_floor'.")
 
-        columns = list(self.buildings_gdf.columns)
-        height_index = columns.index('height')
-        columns.insert(height_index + 1, columns.pop(columns.index('n_floor')))
-        self.buildings_gdf = self.buildings_gdf[columns]
+            # Calculate 'n_floor' using 'height' and 'avg_floor_height'
+            buildings_gdf.loc[missing_n_floor_mask, 'n_floor'] = (
+                    buildings_gdf.loc[missing_n_floor_mask, 'height'] / self.avg_floor_height
+            ).round().astype(int)
 
-        self.buildings_gdf.to_file(self.building_path, driver='GeoJSON')
-        return self.buildings_gdf
+        # Save updated GeoJSON file
+        buildings_gdf.to_file(self.building_path, driver='GeoJSON')
+        return buildings_gdf

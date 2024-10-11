@@ -4,6 +4,24 @@ from model_extraction.processing.process_main import ProcessMain
 if __name__ == '__main__':
     config_path = 'data_source/config/configuration.json'
 
+
+    def baseline():
+        pass
+
+
+    def geometry():
+        pass
+
+
+    def demographic():
+        pass
+
+
+    def energy():
+        pass
+
+
+
     ########### PREPARATION:
     preparation = PrepMain(config_path)
     preparation.select_census_sections()

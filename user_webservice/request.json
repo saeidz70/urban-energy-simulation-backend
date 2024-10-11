@@ -1,0 +1,42 @@
+{
+  "projectName": "torino1",
+  "polygonArray": [
+    [
+      7.6790626775851365,
+      45.061529240535606
+    ],
+    [
+      7.679904165396209,
+      45.05649658133049
+    ],
+    [
+      7.693031375258386,
+      45.06113298422366
+    ],
+    [
+      7.6790626775851365,
+      45.061529240535606
+    ]
+  ],
+  "mapCenter": {
+    "latitude": 45.05971960202992,
+    "longitude": 7.68399940607991,
+    "zoom": 8
+  },
+  "scenarioList": [
+    "baseline"
+  ],
+  "crs": 4826,
+  "Geometry": {
+    "data": {},
+    "configuration": {}
+  },
+  "Demographic": {
+    "data": {},
+    "configuration": {}
+  },
+  "Energy": {
+    "data": {},
+    "configuration": {}
+  }
+}

@@ -20,6 +20,8 @@
   "output_archetypes_path": "data_source/output_files/archetypes/",
   "turin_coordinates": [45.0703, 7.6869],
   "DEFAULT_EPSG_CODE": 32632,
+  "osm_overpass_url": "http://overpass-api.de/api/interpreter",
+  "database_url": "http://localhost:5432",
   "study_case": [
     [
       7.655926633390336,
@@ -94,6 +96,7 @@
       "old_column_name": "building",
       "new_column_name": "osm_building_use"
     },
+
     "population": {
       "input": "data_source/output_files/Building_usage.geojson",
       "output": "data_source/output_files/Building_population.geojson",
@@ -216,5 +219,12 @@
     "Tabula_type": "string",
     "Tabula_id": "string",
     "geometry": "Polygon"
+  },
+  "OSM_tags": {
+    "height": "height",
+    "area": "area",
+    "n_floors": "building:levels",
+    "Usage": "building:use",
+    "year_of_construction": "start_date"
   }
 }
