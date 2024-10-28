@@ -1,4 +1,5 @@
 {
+  "user_file_path": "data_source/input_files/shp/user_file.geojson",
   "shapefile_path": "data_source/input_files/shp/Torino_sezCens_data.geojson",
   "selected_shapefile_path": "data_source/output_files/selected_shapefile.geojson",
   "added_buildings_file_path": "data_source/output_files/buildings_added.geojson",
@@ -8,6 +9,7 @@
   "filtered_area_path": "data_source/output_files/filtered_area.geojson",
   "kriging_output_path": "data_source/output_files/kriging_output.geojson",
   "Building_usage_path": "data_source/output_files/Building_usage.geojson",
+  "n_floor_path": "data_source/output_files/n_floor.geojson",
   "null_cleaned_file_path": "data_source/output_files/null_cleaned.geojson",
   "census_path": "data_source/input_files/census/R01_census_2011.csv",
   "building_path": "data_source/output_files/selected_building.geojson",
@@ -193,7 +195,7 @@
   "limits": {
       "min_height": 3,
       "max_height": 100,
-      "min_area": 20,
+    "min_area": 50,
       "max_area": 100000,
     "avg_floor_height": 3.5
 },

@@ -7,7 +7,7 @@ class ProcessAreas:
     def __init__(self, config_path):
         with open(config_path, 'r') as f:
             config = json.load(f)
-        self.building_path = config['building_path']
+        self.building_path = config['input_file']
         self.buildings_gdf = gpd.read_file(self.building_path)
 
     def calculate_building_areas(self):

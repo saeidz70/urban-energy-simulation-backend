@@ -9,7 +9,7 @@ class ProcessCensus:
         with open(config_path, 'r') as f:
             config = json.load(f)
         self.census_path = config['census_path']
-        self.building_path = config['building_path']
+        self.building_path = config['input_file']
         self.output_selected_census_path = config['output_selected_census_path']
         self.output_buildings_census_path = config['output_buildings_census_path']
         self.census_df = pd.read_csv(self.census_path, encoding='ISO-8859-1', delimiter=',')
