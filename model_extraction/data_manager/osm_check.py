@@ -1,52 +1,82 @@
-import json
-
 import geopandas as gpd
-import requests
-
+import osmnx as ox
 
 class OSMCheck:
-    def __init__(self, config_path):
-        with open(config_path, 'r') as f:
-            self.config = json.load(f)
-        self.osm_overpass_url = self.config['osm_overpass_url']
+    def __init__(self, config):
+        self.config = config
         self.tags = self.config['OSM_tags']
-        self.user_polygon = self.config['study_case']
+        self.default_crs = "EPSG:4326"
 
-        # Load the selected boundaries GeoJSON if specified
-        selected_boundaries_path = self.config.get('selected_boundaries', None)
+        selected_boundaries_path = self.config.get('selected_boundaries')
+        self.selected_boundaries = None
         if selected_boundaries_path:
-            self.selected_boundaries = gpd.read_file(selected_boundaries_path)
-        else:
-            self.selected_boundaries = None
+            try:
+                self.selected_boundaries = gpd.read_file(selected_boundaries_path).to_crs(self.default_crs)
+                print("Selected boundaries loaded successfully.")
+            except Exception as e:
+                print(f"Error loading boundaries: {e}")
 
-    def get_data_from_osm(self, feature):
+    def get_data_from_osm(self, feature, buildings_gdf):
         feature_tag = self.tags.get(feature)
         if not feature_tag:
-            print(f"No OSM tag found for feature: {feature}")
+            print(f"No OSM tag found for feature '{feature}'. Skipping query.")
             return None
 
         polygon = self.get_polygon()
-        query = f"""
-        [out:json];
-        (
-          way["building"](poly:"{self.format_polygon_for_osm(polygon)}")["{feature_tag}"];
-        );
-        out body;
-        >;
-        out skel qt;
-        """
-        response = requests.post(self.osm_overpass_url, data={'data': query})
-        if response.status_code == 200:
-            return response.json()
-        return None
+        if polygon is None:
+            print("No valid polygon data found for the OSM query.")
+            return None
 
-    def format_polygon_for_osm(self, polygon_geojson):
-        coordinates = polygon_geojson['coordinates'][0]
-        formatted_coords = " ".join(f"{lon} {lat}" for lon, lat in coordinates)
-        return formatted_coords
+        osm_gdf = self.fetch_osm_data(feature_tag, polygon)
+        if osm_gdf is None or osm_gdf.empty:
+            print("No valid OSM data retrieved.")
+            return None
+
+        osm_gdf = osm_gdf.to_crs(buildings_gdf.crs)
+        return self.spatial_join(osm_gdf, buildings_gdf, feature, feature_tag)
+
+    def fetch_osm_data(self, feature_tag, polygon):
+        print("Fetching OSM data using osmnx...")
+        tags = {"building": True, feature_tag: True}
+        osm_gdf = ox.features_from_polygon(polygon, tags=tags)
+        print(f"Retrieved {len(osm_gdf)} records from OSM.")
+        return osm_gdf
+
+    def spatial_join(self, osm_gdf, buildings_gdf, feature, feature_tag):
+        print("Performing spatial join between OSM data and buildings...")
+        try:
+            matched_gdf = gpd.sjoin(
+                osm_gdf,
+                buildings_gdf,
+                how="inner",
+                predicate="intersects",
+                lsuffix='_osm',
+                rsuffix='_bld'
+            )
+            print("Spatial join successful.")
+
+            # Look for the OSM tag column and rename it to match the feature name in buildings_gdf
+            osm_feature_column = f"{feature_tag}__osm"
+            if osm_feature_column not in matched_gdf.columns:
+                print(
+                    f"Expected OSM feature column '{osm_feature_column}' not found. Available columns: {matched_gdf.columns}")
+                return None
+
+            # Rename the OSM column to match the feature in buildings_gdf
+            matched_gdf = matched_gdf[['geometry', osm_feature_column]].rename(columns={osm_feature_column: feature})
+            matched_gdf.dropna(subset=[feature], inplace=True)
+
+            if matched_gdf.empty:
+                print("No matching records found after join.")
+                return None
+
+            return matched_gdf
+        except Exception as e:
+            print(f"Error during spatial join: {e}")
+            return None
 
     def get_polygon(self):
         if self.selected_boundaries is not None:
-            # Extracting first polygon from the GeoDataFrame
-            return self.selected_boundaries.iloc[0].geometry.__geo_interface__
-        return {"type": "Polygon", "coordinates": [self.user_polygon]}
+            return self.selected_boundaries.iloc[0].geometry
+        print("No polygon data available.")
+        return None

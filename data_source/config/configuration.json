@@ -1,5 +1,5 @@
 {
-  "user_file_path": "data_source/input_files/shp/user_file.geojson",
+  "user_file_path": "data_source/output_files/usage.geojson",
   "shapefile_path": "data_source/input_files/shp/Torino_sezCens_data.geojson",
   "selected_shapefile_path": "data_source/output_files/selected_shapefile.geojson",
   "added_buildings_file_path": "data_source/output_files/buildings_added.geojson",
@@ -200,33 +200,41 @@
     "avg_floor_height": 3.5
 },
   "features": {
-    "b_id": "string",
+    "b_id": "str",
     "index": "int",
     "height": "int",
     "area": "float",
-    "n_floors": "int",
+    "n_floor": "int",
     "net_leased_area": "float",
     "gross_floor_area": "float",
-    "dest": "(Usage) string",
+    "usage": "str",
     "year_of_construction": "int",
     "sez_cens": "int",
     "tot_area_persez": "float",
-    "n_fam": "int",
-    "construction_type": "string",
+    "n_family": "int",
+    "construction_type": "tuple",
     "w2w": "float",
-    "neighbours_surfaces": "string",
-    "neighbours_ids": "List[int]",
+    "neighbours_surfaces": "float",
+    "neighbours_ids": "list",
     "noWindow_surfaces": "float",
-    "hvac_type": "string",
-    "Tabula_type": "string",
-    "Tabula_id": "string",
-    "geometry": "Polygon"
+    "hvac_type": "str",
+    "Tabula_type": "str",
+    "Tabula_id": "str",
+    "geometry": "polygon"
   },
   "OSM_tags": {
     "height": "height",
     "area": "area",
-    "n_floors": "building:levels",
+    "n_floor": "building:levels",
     "Usage": "building:use",
     "year_of_construction": "start_date"
+  },
+  "utility_features": {
+    "height": "float",
+    "n_floor": "int",
+    "usage": "str",
+    "year_of_construction": "tuple",
+    "n_family": "int",
+    "construction_type": "tuple"
   }
 }
