@@ -4,10 +4,11 @@ from model_extraction.processing.built_year.osm_built_year import OsmBuiltYear
 from model_extraction.processing.census_information.building_usage import BuildingUsageProcessor
 from model_extraction.processing.census_information.family_num_calculation import FamilyCalculator
 from model_extraction.processing.census_information.population_calculation import PopulationCalculator
+from model_extraction.processing.geometry_calculation.area_process import BuildingAreaCalculator
 from model_extraction.processing.geometry_calculation.floor_process import FloorProcess
+from model_extraction.processing.geometry_calculation.height_process import HeightProcess
 from model_extraction.processing.geometry_calculation.height_processing.building_kriging_filler import \
     BuildingKrigingFiller
-from model_extraction.processing.geometry_calculation.height_processing.height_process import HeightProcess
 from model_extraction.processing.geometry_calculation.volume_calculator import BuildingVolumeCalculator
 
 
@@ -15,9 +16,13 @@ class ProcessMain:
     def __init__(self, config_path):
         self.config_path = config_path
 
+    def area_calculation(self):
+        filter_area = BuildingAreaCalculator(self.config_path)
+        filter_area.process_buildings()
+
     def processing_height(self):
         height_process = HeightProcess(self.config_path)
-        height_process.process_height()
+        height_process.process_heights()
         # height_process.calculate_heights_from_dtm_dsm()
 
     def building_kriging_filler(self):
@@ -57,6 +62,7 @@ class ProcessMain:
         archetype_assigner.run()
 
     def run_all_processing(self):
+        self.area_calculation()
         self.processing_height()
         self.building_kriging_filler()
         self.process_volume()

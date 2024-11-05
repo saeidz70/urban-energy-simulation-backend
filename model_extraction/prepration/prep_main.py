@@ -1,5 +1,4 @@
 from model_extraction.prepration.data_cleaning.clean_null import CleanGeoData
-from model_extraction.prepration.data_cleaning.filter_area import BuildingAreaCalculator
 from model_extraction.prepration.read_data.area_selection import CensusSelector
 from model_extraction.prepration.read_data.building_extractor import BuildingExtractor
 from model_extraction.prepration.read_data.convert import Convertor
@@ -36,14 +35,9 @@ class PrepMain:
         clean_data = CleanGeoData(self.config_path)
         clean_data.clean_data()
 
-    def area_calculation(self):
-        filter_area = BuildingAreaCalculator(self.config_path)
-        filter_area.process_buildings()
-
     def run_all_preparations(self):
         self.select_census_sections()
         self.getBoundaries()
         self.building_extraction()
         self.data_integration()
         self.clean_data()
-        self.area_calculation()

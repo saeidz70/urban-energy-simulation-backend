@@ -55,15 +55,23 @@ class OSMCheck:
             )
             print("Spatial join successful.")
 
-            # Look for the OSM tag column and rename it to match the feature name in buildings_gdf
-            osm_feature_column = f"{feature_tag}__osm"
-            if osm_feature_column not in matched_gdf.columns:
+            # Check for the OSM feature column
+            osm_feature_column = feature_tag
+            if osm_feature_column in matched_gdf.columns:
+                # Rename the OSM column to match the feature in buildings_gdf
+                matched_gdf = matched_gdf[['geometry', osm_feature_column]].rename(
+                    columns={osm_feature_column: feature})
+            elif f"{osm_feature_column}__osm" in matched_gdf.columns:
+                # If the column has the "__osm" suffix, use it
+                matched_gdf = matched_gdf[['geometry', f"{osm_feature_column}__osm"]].rename(
+                    columns={f"{osm_feature_column}__osm": feature})
+            else:
                 print(
-                    f"Expected OSM feature column '{osm_feature_column}' not found. Available columns: {matched_gdf.columns}")
+                    f"Expected OSM feature column '{osm_feature_column}' or '{osm_feature_column}__osm' not found. "
+                    f"Available columns: {matched_gdf.columns}")
                 return None
 
-            # Rename the OSM column to match the feature in buildings_gdf
-            matched_gdf = matched_gdf[['geometry', osm_feature_column]].rename(columns={osm_feature_column: feature})
+            # Drop rows with NaN values in the feature column
             matched_gdf.dropna(subset=[feature], inplace=True)
 
             if matched_gdf.empty:

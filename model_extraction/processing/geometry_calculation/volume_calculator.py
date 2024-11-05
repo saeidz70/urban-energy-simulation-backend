@@ -9,13 +9,10 @@ class BuildingVolumeCalculator:
         with open(config_path, 'r') as f:
             config = json.load(f)
 
-        self.buildings_geojson_path = config['kriging_output_path']  # Input file path from previous processing
-
+        self.buildings_geojson_path = config['building_path']
         # Load GeoJSON file during initialization
-        self.buildings_gdf = self.load_geojson(self.buildings_geojson_path)
+        self.buildings_gdf = gpd.read_file(self.buildings_geojson_path)
 
-    def load_geojson(self, file_path):
-        return gpd.read_file(file_path)
 
     def calculate_volume(self):
         # Check for required columns and calculate volume

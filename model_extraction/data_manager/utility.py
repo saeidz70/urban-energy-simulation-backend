@@ -16,7 +16,7 @@ class UtilityProcess:
         self.data_check = DataCheck(self.config)
         self.db_check = DatabaseCheck(self.config)
         self.osm_check = OSMCheck(self.config)
-        self.data_validation = DataValidation(self.config)
+        self.data_validation = DataValidation()
 
     def process_feature(self, feature, buildings_gdf):
         if feature not in buildings_gdf.columns:
@@ -24,7 +24,7 @@ class UtilityProcess:
 
         data = self._get_feature_data(feature, buildings_gdf)
 
-        if data is not None and feature in data.columns and self.data_validation.validate(data, feature):
+        if data is not None and feature in data.columns and self.data_validation.validate(data):
             data = data.drop_duplicates(subset='geometry')
             buildings_gdf = buildings_gdf.merge(data[['geometry', feature]], on='geometry', how='left',
                                                 suffixes=('', '_new'))
@@ -44,7 +44,7 @@ class UtilityProcess:
         try:
             data = self.data_check.get_data_from_user(feature, buildings_gdf)
             if data is not None:
-                print(data, "data got from user file")
+                print(data, "data got from user file", data.head())
             else:
                 print("No data returned from user file.")
         except Exception as e:

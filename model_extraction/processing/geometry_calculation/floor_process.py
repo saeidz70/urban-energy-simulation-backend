@@ -9,14 +9,13 @@ class FloorProcess:
     def __init__(self, config_path):
         with open(config_path, 'r') as f:
             self.config = json.load(f)
-        self.input_file = self.config['kriging_output_path']
-        self.output_file = self.config['n_floor_path']
+        self.building_file = self.config['building_path']
         self.avg_floor_height = self.config["limits"]['avg_floor_height']
         self.utility = UtilityProcess(config_path)
 
     def process_floors(self):
         # Load building data
-        buildings_gdf = gpd.read_file(self.input_file)
+        buildings_gdf = gpd.read_file(self.building_file)
 
         # Ensure 'n_floor' column exists in buildings_gdf, initialize if not
         if 'n_floor' not in buildings_gdf.columns:
@@ -43,6 +42,10 @@ class FloorProcess:
                         buildings_gdf.loc[missing_n_floor, 'height'] / self.avg_floor_height
                 ).round().astype(int)
 
+        # Correctly reorder columns to make 'n_floor' the first column
+        columns = ['n_floor'] + [col for col in buildings_gdf.columns if col != 'n_floor']
+        buildings_gdf = buildings_gdf.reindex(columns=columns)
+
         # Save the updated GeoJSON file
-        buildings_gdf.to_file(self.output_file, driver='GeoJSON')
+        buildings_gdf.to_file(self.building_file, driver='GeoJSON')
         return buildings_gdf

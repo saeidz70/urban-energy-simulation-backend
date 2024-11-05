@@ -1,4 +1,15 @@
+class DataValidation:
+    def validate(self, data):
+        # Check if data is None or less than or equal to zero
+        # True if the data is valid, False otherwise.
+        if data is None or (isinstance(data, (int, float)) and data <= 0):
+            return False
+        return True
+
+
+'''
 import numpy as np
+import pandas as pd
 
 class DataValidation:
     def __init__(self, config):
@@ -29,12 +40,20 @@ class DataValidation:
             return False
 
     def _validate_int(self, data):
+        # Check for valid integer values in a pandas Series
+        if isinstance(data, pd.Series):
+            return data.apply(lambda x: isinstance(x, int) and x > 0).all()
         return isinstance(data, int) and data > 0
 
     def _validate_float(self, data):
+        # Check for valid float values in a pandas Series
+        if isinstance(data, pd.Series):
+            return data.apply(lambda x: isinstance(x, (float, int)) and not pd.isna(x) and x > 0).all()
         return isinstance(data, (float, int)) and not np.isnan(data) and data > 0
 
     def _validate_str(self, data):
+        if isinstance(data, pd.Series):
+            return data.apply(lambda x: isinstance(x, str) and bool(x.strip())).all()
         return isinstance(data, str) and bool(data.strip())
 
     def _validate_list(self, data):
@@ -45,4 +64,8 @@ class DataValidation:
 
     def _validate_polygon(self, data):
         # Check if the data has a geom_type attribute and is a Polygon
+        if isinstance(data, pd.Series):
+            return data.apply(lambda x: hasattr(x, 'geom_type') and x.geom_type == 'Polygon').all()
         return hasattr(data, 'geom_type') and data.geom_type == 'Polygon'
+
+'''
