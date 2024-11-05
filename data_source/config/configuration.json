@@ -1,7 +1,7 @@
 {
-  "user_file_path": "data_source/output_files/usage.geojson",
-  "shapefile_path": "data_source/input_files/shp/Torino_sezCens_data.geojson",
-  "selected_shapefile_path": "data_source/output_files/selected_shapefile.geojson",
+  "user_file_path": "data_source/input_files/shp/user_file.geojson",
+  "census_path": "data_source/input_files/shp/Torino_sezCens_data.geojson",
+  "selected_census_sections": "data_source/output_files/selected_census_section.geojson",
   "added_buildings_file_path": "data_source/output_files/buildings_added.geojson",
   "osm_integrated_selected_path": "data_source/output_files/osm_integrated_selected.geojson",
   "selected_boundaries": "data_source/output_files/selected_boundaries.geojson",
@@ -11,7 +11,6 @@
   "Building_usage_path": "data_source/output_files/Building_usage.geojson",
   "n_floor_path": "data_source/output_files/n_floor.geojson",
   "null_cleaned_file_path": "data_source/output_files/null_cleaned.geojson",
-  "census_path": "data_source/input_files/census/R01_census_2011.csv",
   "building_path": "data_source/output_files/selected_building.geojson",
   "dtm_path": "data_source/input_files/DTM/DTM5_155.tif",
   "dsm_path": "data_source/input_files/DSM/dsm_torino_2013_epsg4326.tif",
@@ -58,28 +57,7 @@
       45.067195959891066
     ]
   ],
-  "bbox": [
-    [
-      7.654746,
-      45.067413
-    ],
-    [
-      7.653828,
-      45.06777
-    ],
-    [
-      7.654225,
-      45.069096
-    ],
-    [
-      7.655067,
-      45.068974
-    ],
-    [
-      7.654751,
-      45.067413
-    ]
-  ],
+
   "input_params": {
     "height": {
       "input": "data_source/output_files/filtered_area.geojson",
@@ -149,16 +127,28 @@
       "family_number": "families"
     }
   },
-
-
-  "attributes": {
-    "building": {
-      "height": "h_tot",
-      "area": "area",
-      "volume": "volume",
-      "footprint": "footprint",
+  "translation": {
+    "height": "UN_VOL_AV",
+    "area": "Area",
+    "n_floor": "building:levels",
+    "net_leased_area": "net_leased_area",
+    "gross_floor_area": "net_leased_area",
+    "usage": "EDIFC_USO",
+    "year_of_construction": "EPOCA_COST",
+    "census_id": "SEZ2011",
+    "tot_area_per_cens_id": "tot_area_per_cens_id",
+    "n_family": "n_fam",
+    "construction_type": "EDIFC_STAT",
+    "w2w": "w2w",
+    "neighbours_surfaces": "neighbours_surfaces",
+    "neighbours_ids": "neighbours_ids",
+    "noWindow_surfaces": "noWindow_surfaces",
+    "hvac_type": "hvac_type",
+    "Tabula_type": "Tabula_type",
+    "Tabula_id": "Tabula_id",
       "geometry": "geometry"
-    },
+  },
+
     "census": {
       "built_year": {
         "E8": "-1919",
@@ -178,27 +168,15 @@
       "population_columns": {
         "PF1": "Num_families",
         "P1": "Population"
-      },
-      "geometry": "geometry",
-      "area": "area",
-      "population": "population",
-      "households": "households",
-      "buildings": "buildings",
-      "residential": "residential",
-      "commercial": "commercial",
-      "services": "services",
-      "industrial": "industrial",
-      "green": "green",
-      "other": "other"
-    }
-  },
+      }
+    },
   "limits": {
       "min_height": 3,
       "max_height": 100,
     "min_area": 50,
       "max_area": 100000,
-    "avg_floor_height": 3.5
-},
+    "avg_floor_height": 3.2
+  },
   "features": {
     "b_id": "str",
     "index": "int",
@@ -209,8 +187,8 @@
     "gross_floor_area": "float",
     "usage": "str",
     "year_of_construction": "int",
-    "sez_cens": "int",
-    "tot_area_persez": "float",
+    "census_id": "int",
+    "tot_area_per_cens_id": "float",
     "n_family": "int",
     "construction_type": "tuple",
     "w2w": "float",

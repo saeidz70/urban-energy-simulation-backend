@@ -1,4 +1,3 @@
-import json
 import os
 
 import geopandas as gpd
@@ -6,9 +5,7 @@ import osmnx as ox
 
 
 class OSMBuildingExtractor:
-    def __init__(self, config_path):
-        with open(config_path, 'r') as f:
-            config = json.load(f)
+    def __init__(self, config):
 
         self.boundary_geojson_path = config['selected_boundaries']
         self.output_file_path = config['osm_building_path']
@@ -24,7 +21,7 @@ class OSMBuildingExtractor:
 
     def filter_columns(self, buildings):
         # List of required columns
-        required_columns = ['osmid', 'nodes', 'building', 'building:levels', 'height']
+        required_columns = ['osmid', 'nodes', 'building']
 
         # Check which columns are actually present in the GeoDataFrame
         available_columns = [col for col in required_columns if col in buildings.columns]

@@ -9,11 +9,11 @@ class CensusSelector:
         with open(config_path, 'r') as f:
             config = json.load(f)
 
-        self.shapefile_path = config['shapefile_path']
+        self.census_path = config['census_path']
         self.polygon_coords = config['study_case']
-        self.output_path = config['selected_shapefile_path']
+        self.output_path = config['selected_census_sections']
 
-        self.census_gdf = gpd.read_file(self.shapefile_path)
+        self.census_gdf = gpd.read_file(self.census_path)
         self.polygon_gdf = None
         self.selected_census_gdf = None
 

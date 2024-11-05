@@ -1,5 +1,4 @@
 import json
-import os
 
 import geopandas as gpd
 
@@ -9,9 +8,8 @@ class DataIntegration:
         with open(config_path, 'r') as f:
             config = json.load(f)
 
-        self.boundary_geojson_path = config['selected_shapefile_path']
-        self.buildings_geojson_path = config['osm_building_path']
-        self.output_file_path = config['osm_integrated_selected_path']
+        self.census_geojson_path = config['selected_census_sections']
+        self.buildings_geojson_path = config['building_path']
 
     def load_geojson(self, file_path):
         return gpd.read_file(file_path)
@@ -22,7 +20,7 @@ class DataIntegration:
         return gdf2
 
     def integrate_buildings(self):
-        boundaries = self.load_geojson(self.boundary_geojson_path)
+        boundaries = self.load_geojson(self.census_geojson_path)
         buildings = self.load_geojson(self.buildings_geojson_path)
 
         buildings = self.check_and_align_crs(boundaries, buildings)
@@ -33,9 +31,5 @@ class DataIntegration:
         return integrated
 
     def save_integrated(self, integrated_gdf):
-        output_dir = os.path.dirname(self.output_file_path)
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-
-        integrated_gdf.to_file(self.output_file_path, driver='GeoJSON')
-        print(f"Integrated data saved to {self.output_file_path}.")
+        integrated_gdf.to_file(self.buildings_geojson_path, driver='GeoJSON')
+        print(f"Integrated data saved to {self.buildings_geojson_path}.")

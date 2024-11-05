@@ -12,7 +12,7 @@ class GetSelectedBoundaries:
         with open(config_path, 'r') as f:
             config = json.load(f)
 
-        self.input_file_path = config['selected_shapefile_path']
+        self.input_file_path = config['selected_census_sections']
         self.output_file_path = config['selected_boundaries']
         self.geo_data = self.load_geojson()
         self.polygons = []

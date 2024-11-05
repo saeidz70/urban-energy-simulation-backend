@@ -9,8 +9,7 @@ class BuildingAreaCalculator:
         with open(config_path, 'r') as f:
             config = json.load(f)
 
-        self.buildings_geojson_path = config['null_cleaned_file_path']
-        self.output_file_path = config['filtered_area_path']
+        self.buildings_geojson_path = config['building_path']
         self.projected_crs = config.get('DEFAULT_EPSG_CODE', 'EPSG:32632')  # Default to Turin UTM zone 32N
 
         # Load GeoJSON file during initialization
@@ -38,12 +37,12 @@ class BuildingAreaCalculator:
         return filtered_gdf
 
     def save_filtered(self, filtered_gdf):
-        output_dir = os.path.dirname(self.output_file_path)
+        output_dir = os.path.dirname(self.buildings_geojson_path)
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
-        filtered_gdf.to_file(self.output_file_path, driver='GeoJSON')
-        print(f"Filtered building data saved to {self.output_file_path}.")
+        filtered_gdf.to_file(self.buildings_geojson_path, driver='GeoJSON')
+        print(f"Filtered building data saved to {self.buildings_geojson_path}.")
 
     def process_buildings(self):
         buildings_with_area = self.calculate_areas()
