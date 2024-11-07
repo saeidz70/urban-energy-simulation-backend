@@ -2,7 +2,6 @@ import json
 
 import geojson
 import geopandas as gpd
-import matplotlib.pyplot as plt
 from shapely.geometry import shape, Polygon
 
 
@@ -35,15 +34,15 @@ class GetSelectedBoundaries:
     def combine_polygons(self):
         self.combined_polygon = gpd.GeoSeries(self.polygons).unary_union
 
-    def plot_boundary(self):
-        if self.combined_polygon is None:
-            print("No combined polygon to plot. Please run combine_polygons() first.")
-            return
-
-        fig, ax = plt.subplots()
-        gpd.GeoSeries(self.combined_polygon).plot(ax=ax, color='blue', edgecolor='black')
-        plt.title("Polygon Boundary of the GeoJSON Area")
-        plt.show()
+    # def plot_boundary(self):
+    #     if self.combined_polygon is None:
+    #         print("No combined polygon to plot. Please run combine_polygons() first.")
+    #         return
+    #
+    #     fig, ax = plt.subplots()
+    #     gpd.GeoSeries(self.combined_polygon).plot(ax=ax, color='blue', edgecolor='black')
+    #     plt.title("Polygon Boundary of the GeoJSON Area")
+    #     plt.show()
 
     def save_boundary(self):
         if self.combined_polygon is None:

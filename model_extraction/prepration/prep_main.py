@@ -4,6 +4,7 @@ from model_extraction.prepration.read_data.building_extractor import BuildingExt
 from model_extraction.prepration.read_data.convert import Convertor
 from model_extraction.prepration.read_data.data_integration import DataIntegration
 from model_extraction.prepration.read_data.get_selected_boundries import GetSelectedBoundaries
+from user_webservice.webservice import ProjectDataView
 
 
 class PrepMain:
@@ -34,6 +35,10 @@ class PrepMain:
     def clean_data(self):
         clean_data = CleanGeoData(self.config_path)
         clean_data.clean_data()
+
+    def websevice(self):
+        webservice = ProjectDataView()
+        webservice.get()
 
     def run_all_preparations(self):
         self.select_census_sections()

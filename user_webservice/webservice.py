@@ -21,3 +21,19 @@ class ProjectDataView(APIView):
             return Response({"message": "Data processed successfully"}, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request):
+        serializer = ProjectDataSerializer(data=request.data)
+        if serializer.is_valid():
+            data = serializer.validated_data
+
+            # Pass data to the helper class
+            helper = ProjectDataHelper()
+            helper.process_data(data)
+
+            return Response({"message": "Data processed successfully"}, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self):
+        return Response({"message": "GET request received"}, status=status.HTTP_200_OK)
