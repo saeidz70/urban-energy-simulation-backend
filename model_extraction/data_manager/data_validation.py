@@ -2,7 +2,7 @@ class DataValidation:
     def validate(self, data):
         # Check if data is None or less than or equal to zero
         # True if the data is valid, False otherwise.
-        if data is None or (isinstance(data, (int, float)) and data <= 0):
+        if data is None or (isinstance(data, (int, float, str)) and data <= 0):
             return False
         return True
 
@@ -13,7 +13,7 @@ import pandas as pd
 
 class DataValidation:
     def __init__(self, config):
-        self.feature_types = config.get('features', {})
+        self.feature_types = config.get('features_collection', {})
 
     def validate(self, data, feature_name):
         # Check if the feature is defined in the config file

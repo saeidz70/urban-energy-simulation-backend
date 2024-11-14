@@ -1,39 +1,102 @@
-# views.py
-
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-
-from user_webservice.helper import ProjectDataHelper
-from user_webservice.serializers import ProjectDataSerializer
+import cherrypy
+import json
+from cherrypy import response
+from config.config import Config
+from user_webservice.helper import DataHelper  # Assuming helper is correctly set up here
 
 
-class ProjectDataView(APIView):
-    def post(self, request):
-        serializer = ProjectDataSerializer(data=request.data)
-        if serializer.is_valid():
-            data = serializer.validated_data
+# Base server class with shared configuration and helper
+class BaseServer(Config):
+    exposed = True
 
-            # Pass data to the helper class
-            helper = ProjectDataHelper()
-            helper.process_data(data)
+    def __init__(self):
+        super().__init__()
+        self.helper = DataHelper(self.config_path)
 
-            return Response({"message": "Data processed successfully"}, status=status.HTTP_200_OK)
+    def OPTIONS(self, *args, **kwargs):
+        cherrypy.response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, OPTIONS'
+        cherrypy.response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        cherrypy.response.headers['Access-Control-Max-Age'] = '3600'
+        cherrypy.response.headers['Content-Type'] = 'text/plain'
+
+
+# Polygon Server: Handles requests specific to polygonArray
+class PolygonServer(BaseServer):
+    @cherrypy.tools.json_out()
+    def POST(self):
+        try:
+            body = cherrypy.request.body.read().decode('utf-8')
+            json_body = json.loads(body)
+            print("Received JSON data for polygonArray:", json_body)
+        except json.JSONDecodeError:
+            response.status = 400
+            return {"status_code": 400, "message": "Invalid or missing JSON data"}
+
+        if 'polygonArray' in json_body:
+            self.helper.process_data('polygonArray', json_body)
+            self.load_config()
+            project_id = self.config["project_info"]["project_id"]
+            project_name = self.config["project_info"]["projectName"]
+
+            return {"status_code": 200, "message": "polygonArray Data processed successfully",
+                    "project_name": project_name, "project_id": project_id}
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            raise cherrypy.HTTPError(400, 'No polygonArray provided in the request.')
 
-    def post(self, request):
-        serializer = ProjectDataSerializer(data=request.data)
-        if serializer.is_valid():
-            data = serializer.validated_data
+    def GET(self):
+        return "GET request received on PolygonServer"
 
-            # Pass data to the helper class
-            helper = ProjectDataHelper()
-            helper.process_data(data)
 
-            return Response({"message": "Data processed successfully"}, status=status.HTTP_200_OK)
+# Building Server: Handles requests specific to buildingGeometry
+class BuildingServer(BaseServer):
+    @cherrypy.tools.json_out()
+    def POST(self):
+        try:
+            body = cherrypy.request.body.read().decode('utf-8')
+            json_body = json.loads(body)
+            print("Received JSON data for buildingGeometry:", json_body)
+        except json.JSONDecodeError:
+            response.status = 400
+            return {"status_code": 400, "message": "Invalid or missing JSON data"}
+
+        if 'buildingGeometry' in json_body:
+            print("Processing buildingGeometry data...")
+            self.helper.process_data('buildingGeometry', json_body)
+            self.load_config()
+            project_id = self.config["project_info"]["project_id"]
+            project_name = self.config["project_info"]["projectName"]
+            return {"status_code": 200, "message": "buildingGeometry Data processed successfully",
+                    "project_name": project_name, "project_id": project_id}
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            raise cherrypy.HTTPError(400, 'No buildingGeometry provided in the request.')
 
-    def get(self):
-        return Response({"message": "GET request received"}, status=status.HTTP_200_OK)
+    def GET(self):
+        return "GET request received on BuildingServer"
+
+
+# CORS setup function
+def CORS():
+    cherrypy.response.headers["Access-Control-Allow-Origin"] = "*"
+
+
+# Server configuration and startup
+if __name__ == '__main__':
+    config = {
+        '/': {
+            'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
+            'tools.sessions.on': True,
+            'tools.CORS.on': True,
+        }
+    }
+
+    cherrypy.server.socket_host = '127.0.0.1'
+    # cherrypy.server.socket_host = '172.25.12.24'
+    cherrypy.config.update({'server.socket_port': 8080})
+    cherrypy.tools.CORS = cherrypy.Tool('before_handler', CORS)
+
+    # Mount each endpoint on a specific path
+    cherrypy.tree.mount(PolygonServer(), '/polygonArray', config)
+    cherrypy.tree.mount(BuildingServer(), '/buildingGeometry', config)
+
+    cherrypy.engine.start()
+    cherrypy.engine.block()

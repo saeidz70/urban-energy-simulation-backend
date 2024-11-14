@@ -23,7 +23,7 @@ class DatabaseCheck:
             if response.status_code == 200:
                 # Convert response JSON to GeoDataFrame
                 response_geojson = response.json()
-                updated_gdf = gpd.GeoDataFrame.from_features(response_geojson["features"])
+                updated_gdf = gpd.GeoDataFrame.from_features(response_geojson["features_collection"])
 
                 # Perform a spatial join to match geometries
                 matched_gdf = gpd.sjoin(buildings_gdf[['geometry']], updated_gdf[['geometry', feature]],

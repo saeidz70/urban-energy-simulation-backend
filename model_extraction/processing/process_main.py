@@ -1,24 +1,29 @@
-from model_extraction.processing.ArchetypeAssigner import TabulaAssigner
-from model_extraction.processing.built_year.census_built_year import CensusBuiltYear
-from model_extraction.processing.built_year.osm_built_year import OsmBuiltYear
-from model_extraction.processing.census_information.building_usage import BuildingUsageProcessor
-from model_extraction.processing.census_information.census_id import CensusIdCalculator
-from model_extraction.processing.census_information.family_num_calculation import FamilyCalculator
-from model_extraction.processing.census_information.population_calculation import PopulationCalculator
-from model_extraction.processing.census_information.tot_area_per_cens_id import TotalAreaPerCensusCalculator
-from model_extraction.processing.geometry_calculation.area_process import BuildingAreaCalculator
-from model_extraction.processing.geometry_calculation.floor_process import FloorProcess
-from model_extraction.processing.geometry_calculation.gross_floor_area import GrossFloorAreaCalculator
-from model_extraction.processing.geometry_calculation.height_process import HeightProcess
-from model_extraction.processing.geometry_calculation.height_processing.building_kriging_filler import \
+from features_collection.features.building_id import BuildingIDAssigner
+from features_collection.features.tabula_id import TabulaAssigner
+from features_collection.features.year_of_construction import CensusBuiltYear
+from model_extraction.processing.osm_built_year import OsmBuiltYear
+from features_collection.features.usage import BuildingUsageProcessor
+from features_collection.features.census_id import CensusIdCalculator
+from features_collection.features.n_family import FamilyCalculator
+from features_collection.features.feature_helpers.population import PopulationCalculator
+from features_collection.features.tot_area_per_cens_id import TotalAreaPerCensusCalculator
+from features_collection.features.area import BuildingAreaCalculator
+from features_collection.features.n_floor import FloorProcess
+from features_collection.features.gross_floor_area import GrossFloorAreaCalculator
+from features_collection.features.height import HeightProcess
+from model_extraction.processing.building_kriging_filler import \
     BuildingKrigingFiller
-from model_extraction.processing.geometry_calculation.net_leased_area import NetLeasedAreaCalculator
-from model_extraction.processing.geometry_calculation.volume_calculator import BuildingVolumeCalculator
+from features_collection.features.net_leased_area import NetLeasedAreaCalculator
+from features_collection.features.feature_helpers.volume import BuildingVolumeCalculator
 
 
 class ProcessMain:
     def __init__(self, config_path):
         self.config_path = config_path
+
+    def building_id(self):
+        id_assigner = BuildingIDAssigner(self.config_path)
+        id_assigner.assign_unique_id()
 
     def area(self):
         filter_area = BuildingAreaCalculator(self.config_path)
