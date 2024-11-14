@@ -1,5 +1,5 @@
 import pandas as pd
-import geopandas as gpd
+
 from config.config import Config
 from model_extraction.data_manager.data_check import DataCheck
 from model_extraction.data_manager.data_validation import DataValidation
@@ -34,10 +34,10 @@ class UtilityProcess(Config):
             buildings_gdf = buildings_gdf.merge(data[['geometry', feature]], on='geometry', how='left',
                                                 suffixes=('', '_new'))
             new_feature_col = f"{feature}_new"
-            print(f"After merge, buildings_gdf columns: {buildings_gdf.columns}")
+            print(f"After merge, buildings_gdf columns: {buildings_gdf.head()}")
 
-            # Handle different data types for the feature
-            if buildings_gdf[new_feature_col].dtype == 'str':
+            if feature == "usage":
+                buildings_gdf[new_feature_col] = buildings_gdf[new_feature_col].astype('str')
                 buildings_gdf[feature] = buildings_gdf[feature].fillna(buildings_gdf[new_feature_col])
             else:
                 # Convert to numeric, treating errors by setting invalid parsing as NaN

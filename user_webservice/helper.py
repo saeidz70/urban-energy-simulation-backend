@@ -1,5 +1,6 @@
-import os
 import json
+import os
+
 import geopandas as gpd
 
 from scenario.scenario_manager import ScenarioManager
@@ -36,7 +37,8 @@ class DataHelper:
             raise ValueError("No polygonArray data provided.")
 
         # Save polygonArray data into the config file under "study_case"
-        self.save_project_info(data)  # Save project info
+        self.save_project_info(data)
+        self.config["study_case"] = polygon_array
         self.save_config()
         print("Polygon data saved in study_case of config.json.")
         self.manager.run_scenarios()

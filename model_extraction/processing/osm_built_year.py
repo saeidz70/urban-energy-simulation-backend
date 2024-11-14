@@ -1,17 +1,15 @@
-import json
-
 import pandas as pd
 import requests
 
+from config.config import Config
 
-class OsmBuiltYear:
-    def __init__(self, config_path):
-        # Load configuration from the given path
-        with open(config_path, 'r') as f:
-            config = json.load(f)
+
+class OsmBuiltYear(Config):
+    def __init__(self):
+        super().__init__()
 
         self.base_url = "https://www.openstreetmap.org/api/0.6/way/"
-        self.building_file = config['kriging_output_path']
+        self.building_file = self.config['building_path']
         self.df = None
 
     def load_building_data(self):

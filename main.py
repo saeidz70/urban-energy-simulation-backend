@@ -1,6 +1,4 @@
 from features_collection.feature_factory import FeatureFactory
-from model_extraction.preparation.data_preparation import PrepMain
-from scenario.scenario_manager import ScenarioManager
 
 if __name__ == '__main__':
     # config_path = 'config/configuration.json'
@@ -30,8 +28,8 @@ if __name__ == '__main__':
     # processing.net_leased_area()
     # processing.tot_area_per_cens_id()
     # processing.usage()
+    # processing.n_family()
     # processing.population_calculator()
-    processing.n_family()
     # processing.process_census_built_year()
     # processing.process_osm_built_year()
     # processing.process_archetype()
@@ -39,3 +37,6 @@ if __name__ == '__main__':
 
     # manager = ScenarioManager()
     # manager.run_scenarios()
+
+    # output_generator = OutputFileGenerator()
+    # output_generator.generate_output_file()

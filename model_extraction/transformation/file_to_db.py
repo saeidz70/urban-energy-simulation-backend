@@ -1,16 +1,16 @@
-import requests
 import json
+
+import requests
+
 from config.config import Config
 
 
 class DBServerUploader(Config):
     def __init__(self):
         super().__init__()
-        self.url = "http://172.25.13.5:8000/api/new_validated_building_scenario/"
-        self.headers = {
-            "Authorization": "Token 4680411d9eab0c3e0ef167f9f8ed80424dc5ce33",
-            "Content-Type": "application/json"
-        }
+        self.load_config()
+        self.url = self.config["database_url"]
+        self.headers = self.config["database_headers"]
         # Retrieve the output path from the config file
         self.geojson_path = self.config.get("output_path")
         if not self.geojson_path:

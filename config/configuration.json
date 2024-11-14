@@ -1,335 +1,288 @@
 {
-  "user_file_path": "",
-  "building_path": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/output_files/buildings.geojson",
-  "output_path": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/output_files/output_building.geojson",
-  "census_path": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/input_files/shp/Torino_sezCens_data.geojson",
-  "selected_census_sections": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/output_files/selected_census_section.geojson",
-  "osm_integrated_selected_path": "data_source/output_files/osm_integrated_selected.geojson",
-  "selected_boundaries": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/output_files/selected_boundaries.geojson",
-  "osm_building_path": "data_source/output_files/OSM_building.geojson",
-  "Building_usage_path": "data_source/output_files/Building_usage.geojson",
-  "dtm_path": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/input_files/DTM/DTM5_155.tif",
-  "dsm_path": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/input_files/DSM/dsm.tif",
-  "tabula": "data_source/input_files/TABULA/TABULA_matching.csv",
-  "turin_coordinates": [
-    45.0703,
-    7.6869
-  ],
-  "DEFAULT_EPSG_CODE": 32632,
-  "DEFAULT_CRS": 4326,
-  "osm_overpass_url": "http://overpass-api.de/api/interpreter",
-  "database_url": "http://localhost:5432",
-  "my_case": [
-    [
-      7.655926633390336,
-      45.067195959891066
+    "user_file_path": "",
+    "building_path": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/output_files/buildings.geojson",
+    "output_path": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/output_files/output_building.geojson",
+    "census_path": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/input_files/shp/Torino_sezCens_data.geojson",
+    "selected_census_sections": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/output_files/selected_census_section.geojson",
+    "osm_integrated_selected_path": "data_source/output_files/osm_integrated_selected.geojson",
+    "selected_boundaries": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/output_files/selected_boundaries.geojson",
+    "osm_building_path": "data_source/output_files/OSM_building.geojson",
+    "Building_usage_path": "data_source/output_files/Building_usage.geojson",
+    "dtm_path": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/input_files/DTM/DTM5_155.tif",
+    "dsm_path": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/input_files/DSM/dsm.tif",
+    "tabula": "data_source/input_files/TABULA/TABULA_matching.csv",
+    "turin_coordinates": [
+        45.0703,
+        7.6869
     ],
-    [
-      7.656377244520445,
-      45.06916608375739
-    ],
-    [
-      7.655068326475843,
-      45.06956010038213
-    ],
-    [
-      7.653802323776968,
-      45.06954494594678
-    ],
-    [
-      7.65262215176954,
-      45.067756694366004
-    ],
-    [
-      7.6543173079256634,
-      45.06686254759557
-    ],
-    [
-      7.655561852951677,
-      45.06639273606023
-    ],
-    [
-      7.655926633390336,
-      45.067195959891066
-    ]
-  ],
-  "input_params": {
-    "height": {
-      "input": "data_source/output_files/filtered_area.geojson",
-      "output": "data_source/output_files/kriging_output.geojson",
-      "kriging_target_column": "height"
+    "DEFAULT_EPSG_CODE": 32632,
+    "DEFAULT_CRS": 4326,
+    "osm_overpass_url": "http://overpass-api.de/api/interpreter",
+    "database_url": "http://172.25.13.13:8000/api/new_validated_building_scenario/",
+    "database_headers": {
+        "Authorization": "Token 4680411d9eab0c3e0ef167f9f8ed80424dc5ce33",
+        "Content-Type": "application/json"
     },
-    "building_use": {
-      "input": "data_source/output_files/kriging_output.geojson",
-      "output": "data_source/output_files/Building_usage.geojson",
-      "allowed_buildings": [
-        "apartments",
-        "residential",
-        "house"
-      ],
-      "old_column_name": "building",
-      "new_column_name": "osm_building_use"
+    "my_case": [
+        [
+            7.655926633390336,
+            45.067195959891066
+        ],
+        [
+            7.656377244520445,
+            45.06916608375739
+        ],
+        [
+            7.655068326475843,
+            45.06956010038213
+        ],
+        [
+            7.653802323776968,
+            45.06954494594678
+        ],
+        [
+            7.65262215176954,
+            45.067756694366004
+        ],
+        [
+            7.6543173079256634,
+            45.06686254759557
+        ],
+        [
+            7.655561852951677,
+            45.06639273606023
+        ],
+        [
+            7.655926633390336,
+            45.067195959891066
+        ]
+    ],
+    "translation": {
+        "height": "UN_VOL_AV",
+        "area": "Area",
+        "n_floor": "building:levels",
+        "net_leased_area": "net_leased_area",
+        "gross_floor_area": "net_leased_area",
+        "usage": "EDIFC_USO",
+        "year_of_construction": "EPOCA_COST",
+        "census_id": "SEZ2011",
+        "tot_area_per_cens_id": "tot_area_per_cens_id",
+        "n_family": "n_fam",
+        "construction_type": "EDIFC_STAT",
+        "w2w": "w2w",
+        "neighbours_surfaces": "neighbours_surfaces",
+        "neighbours_ids": "neighbours_ids",
+        "hvac_type": "hvac_type",
+        "tabula_type": "Tabula_type",
+        "tabula_id": "Tabula_id",
+        "cooling": "bool",
+        "heating": "bool",
+        "geometry": "geometry"
     },
-    "population": {
-      "input": "data_source/output_files/Building_usage.geojson",
-      "output": "data_source/output_files/Building_population.geojson",
-      "population": "P1",
-      "volume": "volume",
-      "censusID": "SEZ2011"
+    "census": {
+        "census_id": "SEZ2011",
+        "built_year": {
+            "E8": "-1919",
+            "E9": "1919-1945",
+            "E10": "1946-1960",
+            "E11": "1961-1970",
+            "E12": "1971-1980",
+            "E13": "1981-1990",
+            "E14": "1991-2000",
+            "E15": "2001-2005",
+            "E16": "2005-"
+        },
+        "census_usage": {
+            "E3": "residential",
+            "E4": "non residential"
+        },
+        "population_columns": {
+            "n_family": "PF1",
+            "Population": "P1"
+        }
     },
-    "family": {
-      "input": "data_source/output_files/Building_population.geojson",
-      "output": "data_source/output_files/Building_family.geojson",
-      "family": "PF1",
-      "volume": "volume",
-      "censusID": "SEZ2011"
+    "limits": {
+        "min_height": 3,
+        "max_height": 300,
+        "min_area": 50,
+        "max_area": 100000,
+        "avg_floor_height": 3.2,
+        "usage": [
+            "residential",
+            "apartments",
+            "house",
+            "commercial"
+        ]
     },
-    "construction_year": {
-      "input": "data_source/output_files/Building_family.geojson",
-      "output": "data_source/output_files/Building_construction_year.geojson",
-      "census_columns": [
-        "E8",
-        "E9",
-        "E10",
-        "E11",
-        "E12",
-        "E13",
-        "E14",
-        "E15",
-        "E16"
-      ],
-      "censusID": "SEZ2011",
-      "year_mapping": {
-        "E8": "-1919",
-        "E9": "1919-1945",
-        "E10": "1946-1960",
-        "E11": "1961-1970",
-        "E12": "1971-1980",
-        "E13": "1981-1990",
-        "E14": "1991-2000",
-        "E15": "2001-2005",
-        "E16": "2005-"
-      }
+    "features": {
+        "building_id": "str",
+        "height": "int",
+        "area": "float",
+        "n_floor": "int",
+        "net_leased_area": "float",
+        "gross_floor_area": "float",
+        "usage": "str",
+        "year_of_construction": "int",
+        "census_id": "int",
+        "tot_area_per_cens_id": "float",
+        "n_family": "int",
+        "construction_type": "str",
+        "w2w": "float",
+        "neighbours_surfaces": "str(list)",
+        "neighbours_ids": "str(list)",
+        "hvac_type": "str",
+        "tabula_type": "str",
+        "tabula_id": "str",
+        "cooling": "bool",
+        "heating": "bool",
+        "geometry": "polygon"
     },
-    "tabula": {
-      "building_input": "data_source/output_files/Building_construction_year.geojson",
-      "tabula_input": "data_source/input_files/TABULA/TABULA_matching.csv",
-      "output": "data_source/output_files/Building_tabula.geojson",
-      "usage_column": "osm_building_use",
-      "year_column": "built_year",
-      "family_number": "families"
+    "OSM_tags": {
+        "height": "height",
+        "area": "area",
+        "n_floor": "building:levels",
+        "usage": "building",
+        "year_of_construction": "start_date"
+    },
+    "utility_features": {
+        "height": "float",
+        "n_floor": "int",
+        "usage": "str",
+        "year_of_construction": "tuple",
+        "n_family": "int",
+        "construction_type": "tuple"
+    },
+    "scenarios": {
+        "baseline_scenario": [
+            "project_id",
+            "building_id",
+            "census_id",
+            "area",
+            "height",
+            "volume",
+            "n_floor",
+            "gross_floor_area",
+            "net_leased_area",
+            "tot_area_per_cens_id",
+            "usage",
+            "year_of_construction",
+            "n_family",
+            "construction_type",
+            "w2w",
+            "neighbours_ids",
+            "neighbours_surfaces",
+            "cooling",
+            "heating",
+            "hvac_type",
+            "tabula_type",
+            "tabula_id"
+        ],
+        "geometry_scenario": [
+            "building_id",
+            "area",
+            "height",
+            "volume",
+            "n_floor",
+            "net_leased_area",
+            "gross_floor_area",
+            "neighbours_ids",
+            "neighbours_surfaces"
+        ],
+        "demographic_scenario": [
+            "census_id",
+            "n_family",
+            "usage",
+            "year_of_construction",
+            "tot_area_per_cens_id"
+        ],
+        "energy_scenario": [
+            "construction_type",
+            "w2w",
+            "cooling",
+            "heating",
+            "hvac_type",
+            "tabula_type",
+            "tabula_id"
+        ]
+    },
+    "study_case": [
+        [
+            7.655926633390336,
+            45.067195959891066
+        ],
+        [
+            7.656377244520445,
+            45.06916608375739
+        ],
+        [
+            7.655068326475843,
+            45.06956010038213
+        ],
+        [
+            7.653802323776968,
+            45.06954494594678
+        ],
+        [
+            7.65262215176954,
+            45.067756694366004
+        ],
+        [
+            7.6543173079256634,
+            45.06686254759557
+        ],
+        [
+            7.655561852951677,
+            45.06639273606023
+        ],
+        [
+            7.655926633390336,
+            45.067195959891066
+        ]
+    ],
+    "project_info": {
+        "projectName": "Torino",
+        "mapCenter": {
+            "latitude": 45.43676673688583,
+            "longitude": 7.606706647981852,
+            "zoom": 8
+        },
+        "polygonArray": [
+            [
+                7.655926633390336,
+                45.067195959891066
+            ],
+            [
+                7.656377244520445,
+                45.06916608375739
+            ],
+            [
+                7.655068326475843,
+                45.06956010038213
+            ],
+            [
+                7.653802323776968,
+                45.06954494594678
+            ],
+            [
+                7.65262215176954,
+                45.067756694366004
+            ],
+            [
+                7.6543173079256634,
+                45.06686254759557
+            ],
+            [
+                7.655561852951677,
+                45.06639273606023
+            ],
+            [
+                7.655926633390336,
+                45.067195959891066
+            ]
+        ],
+        "scenarioList": [
+            "baseline"
+        ],
+        "project_id": "ccc40a43-7d76-4a9f-9960-9d1ffa9b3f9a"
     }
-  },
-  "translation": {
-    "height": "UN_VOL_AV",
-    "area": "Area",
-    "n_floor": "building:levels",
-    "net_leased_area": "net_leased_area",
-    "gross_floor_area": "net_leased_area",
-    "usage": "EDIFC_USO",
-    "year_of_construction": "EPOCA_COST",
-    "census_id": "SEZ2011",
-    "tot_area_per_cens_id": "tot_area_per_cens_id",
-    "n_family": "n_fam",
-    "construction_type": "EDIFC_STAT",
-    "w2w": "w2w",
-    "neighbours_surfaces": "neighbours_surfaces",
-    "neighbours_ids": "neighbours_ids",
-    "hvac_type": "hvac_type",
-    "tabula_type": "Tabula_type",
-    "tabula_id": "Tabula_id",
-    "cooling": "bool",
-    "heating": "bool",
-    "geometry": "geometry"
-  },
-  "census": {
-    "census_id": "SEZ2011",
-    "built_year": {
-      "E8": "-1919",
-      "E9": "1919-1945",
-      "E10": "1946-1960",
-      "E11": "1961-1970",
-      "E12": "1971-1980",
-      "E13": "1981-1990",
-      "E14": "1991-2000",
-      "E15": "2001-2005",
-      "E16": "2005-"
-    },
-    "census_usage": {
-      "E3": "residential",
-      "E4": "non residential"
-    },
-    "population_columns": {
-      "n_family": "PF1",
-      "Population": "P1"
-    }
-  },
-  "limits": {
-    "min_height": 3,
-    "max_height": 300,
-    "min_area": 50,
-    "max_area": 100000,
-    "avg_floor_height": 3.2,
-    "usage": [
-      "residential",
-      "apartments",
-      "house",
-      "commercial"
-    ]
-  },
-  "features": {
-    "building_id": "str",
-    "height": "int",
-    "area": "float",
-    "n_floor": "int",
-    "net_leased_area": "float",
-    "gross_floor_area": "float",
-    "usage": "str",
-    "year_of_construction": "int",
-    "census_id": "int",
-    "tot_area_per_cens_id": "float",
-    "n_family": "int",
-    "construction_type": "str",
-    "w2w": "float",
-    "neighbours_surfaces": "list",
-    "neighbours_ids": "list",
-    "hvac_type": "str",
-    "tabula_type": "str",
-    "tabula_id": "str",
-    "cooling": "bool",
-    "heating": "bool",
-    "geometry": "polygon"
-  },
-  "OSM_tags": {
-    "height": "height",
-    "area": "area",
-    "n_floor": "building:levels",
-    "usage": "building",
-    "year_of_construction": "start_date"
-  },
-  "utility_features": {
-    "height": "float",
-    "n_floor": "int",
-    "usage": "str",
-    "year_of_construction": "tuple",
-    "n_family": "int",
-    "construction_type": "tuple"
-  },
-  "scenarios": {
-    "baseline_scenario": [
-      "project_id",
-      "building_id",
-      "census_id",
-      "area",
-      "height",
-      "volume",
-      "n_floor",
-      "gross_floor_area",
-      "net_leased_area",
-      "tot_area_per_cens_id",
-      "usage",
-      "year_of_construction",
-      "n_family",
-      "construction_type",
-      "w2w",
-      "neighbours_surfaces",
-      "neighbours_ids",
-      "cooling",
-      "heating",
-      "hvac_type",
-      "tabula_type",
-      "tabula_id"
-    ],
-    "geometry_scenario": [
-      "building_id",
-      "area",
-      "height",
-      "volume",
-      "n_floor",
-      "net_leased_area",
-      "gross_floor_area",
-      "neighbours_surfaces",
-      "neighbours_ids"
-    ],
-    "demographic_scenario": [
-      "census_id",
-      "n_family",
-      "usage",
-      "year_of_construction",
-      "tot_area_per_cens_id"
-    ],
-    "energy_scenario": [
-      "construction_type",
-      "w2w",
-      "cooling",
-      "heating",
-      "hvac_type",
-      "tabula_type",
-      "tabula_id"
-    ]
-  },
-  "study_case": [
-    [
-      7.681501457533301,
-      45.053204056223024
-    ],
-    [
-      7.681407418340115,
-      45.0527390165081
-    ],
-    [
-      7.6821933173051775,
-      45.05302373514982
-    ],
-    [
-      7.681501457533301,
-      45.053204056223024
-    ]
-  ],
-  "project_info": {
-    "projectName": "Torino",
-    "mapCenter": {
-      "latitude": 45.43676673688583,
-      "longitude": 7.606706647981852,
-      "zoom": 8
-    },
-    "polygonArray": [
-      [
-        7.655926633390336,
-        45.067195959891066
-      ],
-      [
-        7.656377244520445,
-        45.06916608375739
-      ],
-      [
-        7.655068326475843,
-        45.06956010038213
-      ],
-      [
-        7.653802323776968,
-        45.06954494594678
-      ],
-      [
-        7.65262215176954,
-        45.067756694366004
-      ],
-      [
-        7.6543173079256634,
-        45.06686254759557
-      ],
-      [
-        7.655561852951677,
-        45.06639273606023
-      ],
-      [
-        7.655926633390336,
-        45.067195959891066
-      ]
-    ],
-    "scenarioList": [
-      "baseline"
-    ],
-    "project_id": "735ec4c7-5a33-494b-afe3-3fbdb6d3dd9a"
-  }
 }

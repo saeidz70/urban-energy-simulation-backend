@@ -1,4 +1,3 @@
-import json
 import geopandas as gpd
 import pandas as pd
 
@@ -11,7 +10,7 @@ class FamilyCalculator(Config):
         super().__init__()
         self.building_file = self.config['building_path']
         self.family_column = self.config["census"]["population_columns"]["n_family"]
-        self.buildings = None  # To store the buildings GeoDataFrame
+        self.buildings = None
 
     def calculate_volume(self):
         volume_calculator = BuildingVolumeCalculator()
@@ -34,7 +33,7 @@ class FamilyCalculator(Config):
         census_families = self.buildings.groupby('census_id')[self.family_column].sum()
 
         # Calculate family distribution based on volume ratios
-        self.buildings['families'] = self.buildings.apply(
+        self.buildings['n_family'] = self.buildings.apply(
             lambda row: round((row['volume'] / census_volumes[row['census_id']]) * census_families[row['census_id']])
             if row['census_id'] in census_volumes and census_volumes[row['census_id']] > 0 else 0, axis=1
         )
