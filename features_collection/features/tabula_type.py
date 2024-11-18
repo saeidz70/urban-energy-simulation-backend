@@ -1,5 +1,7 @@
-import geopandas as gpd
 import random
+
+import geopandas as gpd
+
 from config.config import Config
 
 
@@ -7,7 +9,7 @@ class TabulaType(Config):
     def __init__(self):
         super().__init__()
         self.building_file = self.config.get('building_path')
-        self.tabula_types = ['mfh', 'sf', 'ab', 'th']  # Possible values for tabula_type
+        self.tabula_types = ["SFH", "TH", "MFH", "AB"]  # Possible values for tabula_type
 
     def run(self):
         # Load building data

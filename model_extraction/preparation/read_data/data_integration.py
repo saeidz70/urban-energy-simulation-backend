@@ -1,12 +1,12 @@
-import json
 import geopandas as gpd
+
 from config.config import Config
 
 
 class DataIntegration(Config):
     def __init__(self):
         super().__init__()
-        self.census_geojson_path = self.config['selected_census_sections']
+        self.census_geojson_path = self.config['db_census_sections']
         self.buildings_geojson_path = self.config['building_path']
 
     def load_geojson(self, file_path):

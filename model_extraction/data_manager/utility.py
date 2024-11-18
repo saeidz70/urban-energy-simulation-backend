@@ -28,13 +28,13 @@ class UtilityProcess(Config):
         # Proceed if data is valid and has expected columns
         if data is not None and feature in data.columns and self.data_validation.validate(data):
             data = data.drop_duplicates(subset='geometry')
-            print("Data after removing duplicates:", data.head())
+            # print("Data after removing duplicates:", data.head())
 
             # Perform the merge and handle missing values
             buildings_gdf = buildings_gdf.merge(data[['geometry', feature]], on='geometry', how='left',
                                                 suffixes=('', '_new'))
             new_feature_col = f"{feature}_new"
-            print(f"After merge, buildings_gdf columns: {buildings_gdf.head()}")
+            # print(f"After merge, buildings_gdf columns: {buildings_gdf.head()}")
 
             if feature == "usage":
                 buildings_gdf[new_feature_col] = buildings_gdf[new_feature_col].astype('str')
@@ -86,6 +86,6 @@ class UtilityProcess(Config):
         if data is None or data.empty:
             print(f"No data retrieved for feature '{feature}' from any source.")
         else:
-            print(f"Final data retrieved for '{feature}':", data.head())
+            print(f"Final data retrieved for '{feature}' has columns: {data.columns}")
 
         return data

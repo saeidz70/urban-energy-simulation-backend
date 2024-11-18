@@ -12,7 +12,7 @@ class NeighboursIds(Config):
         self.metric_crs = f"EPSG:{self.config.get('DEFAULT_EPSG_CODE', 3395)}"
 
     def add_neighbour_ids(self):
-        """Add a 'neighbours_ids' column with IDs of buildings within a specified radius."""
+        """Add a 'neighbours_ids' column with IDs of user_building_file within a specified radius."""
         buildings_gdf = gpd.read_file(self.building_file)
 
         # Ensure 'building_id' exists in buildings_gdf

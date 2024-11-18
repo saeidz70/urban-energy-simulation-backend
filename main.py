@@ -1,4 +1,5 @@
 from features_collection.feature_factory import FeatureFactory
+from model_extraction.preparation.read_data.db_census_fetcher import DbCensusFetcher
 
 if __name__ == '__main__':
     # config_path = 'config/configuration.json'
@@ -40,3 +41,9 @@ if __name__ == '__main__':
 
     # output_generator = OutputFileGenerator()
     # output_generator.generate_output_file()
+
+    fetcher = DbCensusFetcher()
+    fetcher.run()
+
+    # polygon_creator = BuildingPolygonCreator()
+    # polygon_creator.create_polygon()

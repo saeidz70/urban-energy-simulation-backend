@@ -1,6 +1,8 @@
-import cherrypy
 import json
+
+import cherrypy
 from cherrypy import response
+
 from config.config import Config
 from user_webservice.helper import DataHelper  # Assuming helper is correctly set up here
 
@@ -11,7 +13,7 @@ class BaseServer(Config):
 
     def __init__(self):
         super().__init__()
-        self.helper = DataHelper(self.config_path)
+        self.helper = DataHelper()
 
     def OPTIONS(self, *args, **kwargs):
         cherrypy.response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, OPTIONS'
@@ -38,8 +40,11 @@ class PolygonServer(BaseServer):
             project_id = self.config["project_info"]["project_id"]
             project_name = self.config["project_info"]["projectName"]
 
-            return {"status_code": 200, "message": "polygonArray Data processed successfully",
+            message = {"status_code": 200, "message": "polygonArray Data processed successfully",
                     "project_name": project_name, "project_id": project_id}
+
+            print(message)
+            return message
         else:
             raise cherrypy.HTTPError(400, 'No polygonArray provided in the request.')
 
@@ -65,8 +70,12 @@ class BuildingServer(BaseServer):
             self.load_config()
             project_id = self.config["project_info"]["project_id"]
             project_name = self.config["project_info"]["projectName"]
-            return {"status_code": 200, "message": "buildingGeometry Data processed successfully",
+
+            message = {"status_code": 200, "message": "buildingGeometry Data processed successfully",
                     "project_name": project_name, "project_id": project_id}
+
+            print(message)
+            return message
         else:
             raise cherrypy.HTTPError(400, 'No buildingGeometry provided in the request.')
 
@@ -89,8 +98,8 @@ if __name__ == '__main__':
         }
     }
 
-    cherrypy.server.socket_host = '127.0.0.1'
-    # cherrypy.server.socket_host = '172.25.12.24'
+    # cherrypy.server.socket_host = '127.0.0.1'
+    cherrypy.server.socket_host = '172.25.12.24'
     cherrypy.config.update({'server.socket_port': 8080})
     cherrypy.tools.CORS = cherrypy.Tool('before_handler', CORS)
 

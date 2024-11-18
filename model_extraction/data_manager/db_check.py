@@ -9,14 +9,14 @@ class DatabaseCheck:
         self.db_url = config['database_url']
 
     def get_data_from_db(self, feature, buildings_gdf):
-        # Convert buildings GeoDataFrame to GeoJSON format
+        # Convert user_building_file GeoDataFrame to GeoJSON format
         geojson_data = buildings_gdf.to_json()
 
         try:
             # Send request to the database with the feature and building geometries
             response = requests.post(self.db_url, json={
                 "feature": feature,
-                "buildings": json.loads(geojson_data)
+                "user_building_file": json.loads(geojson_data)
             })
 
             # Check for a successful response

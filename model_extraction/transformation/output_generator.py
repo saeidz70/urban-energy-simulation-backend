@@ -14,7 +14,7 @@ class OutputFileGenerator(Config):
         self.default_crs = self.config.get('DEFAULT_CRS', 4326)
         self.features = set(self.config["features"].keys())
         self.project_info = self.config.get('project_info', {})
-        self.user_polygon = self.config.get('study_case', None)
+        self.user_polygon_file = self.config.get('polygon_from_building')
 
     def validate_crs(self, gdf):
         if gdf.crs is None:
@@ -30,16 +30,17 @@ class OutputFileGenerator(Config):
         return gdf[list(matching_columns)]
 
     def filter_by_polygon(self, gdf):
+        self.user_polygon = gpd.read_file(self.user_polygon_file).geometry[0]
         if self.user_polygon is not None:
             polygon_geom = Polygon(self.user_polygon)
             gdf = self.validate_crs(gdf)
             # Directly filter by intersecting with polygon_geom
             gdf = gdf[gdf.intersects(polygon_geom)]
-            print("Filtered buildings based on the user's polygon.")
+            print("Filtered user_building_file based on the user's polygon.")
         return gdf
 
     def generate_output_file(self):
-        # Load buildings data
+        # Load user_building_file data
         buildings_gdf = gpd.read_file(self.building_file)
 
         # Ensure CRS is validated

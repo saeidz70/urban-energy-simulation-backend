@@ -1,4 +1,5 @@
 import geopandas as gpd
+
 from config.config import Config
 from model_extraction.data_manager.utility import UtilityProcess
 
@@ -46,14 +47,14 @@ class BuildingUsageProcessor(Config):
         # Normalize 'usage' column to lowercase for filtering, handling only non-null values
         buildings_gdf['usage'] = buildings_gdf['usage'].apply(lambda x: x.lower() if isinstance(x, str) else x)
 
-        # Log allowed usages and filter buildings
+        # Log allowed usages and filter user_building_file
         print(f"Allowed 'usage' values for filtering: {self.allowed_usages}")
         initial_count = len(buildings_gdf)
         buildings_gdf = buildings_gdf[buildings_gdf['usage'].isin(self.allowed_usages)]
         filtered_count = len(buildings_gdf)
-        print(f"Filtered buildings by usage: {initial_count} -> {filtered_count}")
+        print(f"Filtered user_building_file by usage: {initial_count} -> {filtered_count}")
 
-        # Only save to file if there are remaining buildings after filtering
+        # Only save to file if there are remaining user_building_file after filtering
         if filtered_count > 0:
             # Reorder columns to make 'usage' the first column
             columns = ['usage'] + [col for col in buildings_gdf.columns if col != 'usage']
@@ -63,6 +64,6 @@ class BuildingUsageProcessor(Config):
             buildings_gdf.to_file(self.building_file, driver='GeoJSON')
             print(f"Filtered data saved to {self.building_file}")
         else:
-            print("No buildings match the allowed usage types; file was not saved.")
+            print("No user_building_file match the allowed usage types; file was not saved.")
 
         return buildings_gdf

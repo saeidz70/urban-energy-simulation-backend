@@ -6,7 +6,7 @@ import geopandas as gpd
 class DataCheck:
     def __init__(self, config):
         self.config = config
-        self.user_file = self.config['user_file_path']
+        self.user_file = self.config['user_building_file']
         self.translation = self.config.get('translation', {})
 
         # Load the user file if it exists

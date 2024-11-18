@@ -11,7 +11,7 @@ class Convertor:
             self.config = json.load(file)
 
         # Paths and boundary loading
-        self.user_file_path = self.config['user_file_path']
+        self.user_file_path = self.config['user_building_file']
         self.my_data = gpd.read_file(self.user_file_path)
 
     def convert_file_format(self, new_name):

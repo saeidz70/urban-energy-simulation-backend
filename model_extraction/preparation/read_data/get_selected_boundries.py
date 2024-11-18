@@ -2,13 +2,14 @@ import geojson
 import geopandas as gpd
 from matplotlib import pyplot as plt
 from shapely.geometry import shape, Polygon
+
 from config.config import Config
 
 
 class GetSelectedBoundaries(Config):
     def __init__(self):
         super().__init__()
-        self.input_file_path = self.config['selected_census_sections']
+        self.input_file_path = self.config['db_census_sections']
         self.output_file_path = self.config['selected_boundaries']
         self.geo_data = self.load_geojson()
         self.polygons = []

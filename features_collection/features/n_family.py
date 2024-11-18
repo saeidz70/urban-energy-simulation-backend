@@ -17,7 +17,7 @@ class FamilyCalculator(Config):
         volume_calculator.calculate_volume()
 
     def calculate_family_distribution(self):
-        # Read buildings data if not already loaded
+        # Read user_building_file data if not already loaded
         if self.buildings is None:
             self.buildings = gpd.read_file(self.building_file)
 
@@ -37,7 +37,7 @@ class FamilyCalculator(Config):
             lambda row: round((row['volume'] / census_volumes[row['census_id']]) * census_families[row['census_id']])
             if row['census_id'] in census_volumes and census_volumes[row['census_id']] > 0 else 0, axis=1
         )
-        print("Family distribution calculated and added to buildings data.")
+        print("Family distribution calculated and added to user_building_file data.")
 
     def output_results(self):
         # Save the updated GeoJSON file with families data

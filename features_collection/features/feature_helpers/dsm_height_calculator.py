@@ -1,10 +1,12 @@
 import os
+
 import geopandas as gpd
 import numpy as np
 import rasterio
 from rasterio.mask import mask
 from rasterio.warp import calculate_default_transform, reproject, Resampling
 from shapely.geometry import box
+
 from config.config import Config
 
 
@@ -86,7 +88,7 @@ class DtmDsmHeightCalculator(Config):
             raise ValueError("DTM and DSM data must be loaded first.")
         print("Calculating building heights by masking DTM and DSM.")
 
-        # Temporarily reproject buildings to EPSG:32632
+        # Temporarily reproject user_building_file to EPSG:32632
         if buildings_gdf.crs != f"EPSG:{self.default_epsg}":
             print(f"Reprojecting buildings_gdf from {buildings_gdf.crs} to EPSG:{self.default_epsg}")
             buildings_gdf = buildings_gdf.to_crs(epsg=self.default_epsg)

@@ -43,7 +43,7 @@ class OSMCheck:
         return osm_gdf
 
     def spatial_join(self, osm_gdf, buildings_gdf, feature, feature_tag):
-        print("Performing spatial join between OSM data and buildings...")
+        print("Performing spatial join between OSM data and user_building_file...")
         try:
             matched_gdf = gpd.sjoin(
                 osm_gdf,

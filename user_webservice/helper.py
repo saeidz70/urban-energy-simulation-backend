@@ -3,20 +3,19 @@ import os
 
 import geopandas as gpd
 
+from config.config import Config
 from scenario.scenario_manager import ScenarioManager
+from user_webservice.polygon_from_buildings import BuildingPolygonCreator
 
 
-class DataHelper:
-    def __init__(self, config_path):
-        self.config_path = config_path
-        self.config = self.load_config()
-        self.user_file_path = "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/input_files/shp/my_user_file.geojson"
+class DataHelper(Config):
+    def __init__(self):
+        super().__init__()
+        self.load_config()
+        self.user_building_file = self.config["user_building_file"]
         self.default_crs = f"EPSG:{self.config.get('DEFAULT_CRS', 4326)}"
         self.manager = ScenarioManager()
-
-    def load_config(self):
-        with open(self.config_path, 'r') as f:
-            return json.load(f)
+        self.polygon_creator = BuildingPolygonCreator()
 
     def save_config(self):
         with open(self.config_path, 'w') as f:
@@ -41,6 +40,7 @@ class DataHelper:
         self.config["study_case"] = polygon_array
         self.save_config()
         print("Polygon data saved in study_case of config.json.")
+        self.polygon_creator.user_polygon(polygon_array)
         self.manager.run_scenarios()
 
     def process_building_geometry(self, data):
@@ -48,37 +48,48 @@ class DataHelper:
         if not building_geometry:
             raise ValueError("No buildingGeometry data provided.")
 
-        # Validate and convert to GeoDataFrame
         try:
-            buildings_gdf = gpd.GeoDataFrame.from_features(building_geometry['features_collection'])
+            # Load GeoDataFrame from GeoJSON
+            buildings_gdf = gpd.GeoDataFrame.from_features(building_geometry['features'])
             print("Building geometry data loaded successfully.")
-            if buildings_gdf.crs is None:
-                print("No CRS found in the GeoJSON data. Setting to default.")
+
+            # Check and set CRS from input
+            input_crs = building_geometry.get("crs", {}).get("properties", {}).get("name")
+            if input_crs:
+                print(f"CRS provided in data: {input_crs}")
+                if buildings_gdf.crs is None or buildings_gdf.crs.to_string() != input_crs:
+                    print(f"Setting CRS to input CRS: {input_crs}.")
+                    buildings_gdf.set_crs(input_crs, inplace=True, allow_override=True)
+            else:
+                print(f"No CRS provided in data. Setting default CRS: {self.default_crs}")
                 buildings_gdf.set_crs(self.default_crs, inplace=True)
+
+            # Reproject to default CRS
+            if buildings_gdf.crs.to_string() != self.default_crs:
+                print(f"Reprojecting GeoDataFrame to default CRS: {self.default_crs}.")
+                buildings_gdf = buildings_gdf.to_crs(self.default_crs)
+
+            # Ensure the directory for user_building_file exists
+            user_file_dir = os.path.dirname(self.user_building_file)
+            if not os.path.exists(user_file_dir):
+                print(f"Directory {user_file_dir} does not exist. Creating it now.")
+                os.makedirs(user_file_dir)
+
+            # Save as GeoJSON file in default CRS
+            buildings_gdf.to_file(self.user_building_file, driver="GeoJSON")
+            print(f"Building geometry saved to {self.user_building_file} in CRS {self.default_crs}.")
+
+            # Clear study_case in config
+            self.config["study_case"] = []
+            self.config["user_building_file"] = self.user_building_file
+            self.save_project_info(data)  # Save project info
+            self.save_config()
+            print("Project info saved in config.json.")
+            self.polygon_creator.create_polygon_from_buildings()
+            self.manager.run_scenarios()
+
         except Exception as e:
-            raise ValueError(f"Invalid GeoJSON format for building geometry: {e}")
-
-        # Reproject to the default EPSG code if needed
-        print(f"Reprojecting to EPSG:{self.default_crs}")
-        buildings_gdf = buildings_gdf.to_crs(epsg=self.default_crs)
-
-        # Ensure the directory for user_file_path exists
-        user_file_dir = os.path.dirname(self.user_file_path)
-        if not os.path.exists(user_file_dir):
-            print(f"Directory {user_file_dir} does not exist. Creating it now.")
-            os.makedirs(user_file_dir)
-
-        # Save as GeoJSON file
-        buildings_gdf.to_file(self.user_file_path, driver="GeoJSON")
-        print(f"Building geometry saved to {self.user_file_path}.")
-
-        # Empty study_case in the config file
-        self.config["study_case"] = []
-        self.config["user_file_path"] = self.user_file_path
-        self.save_project_info(data)  # Save project info
-        self.save_config()
-        print("Project info saved in config.json.")
-        self.manager.run_scenarios()
+            raise ValueError(f"Error processing building geometry: {e}")
 
     def save_project_info(self, data):
         project_info = {
@@ -89,9 +100,3 @@ class DataHelper:
         }
         self.config["project_info"] = project_info
         print("Project data saved in project section of config.json.")
-
-    def run_baseline(self):
-        print("Running Baseline processing...")
-        # baseline_processor = Baseline()
-        # baseline_processor.run()
-        print("Baseline processing completed.")

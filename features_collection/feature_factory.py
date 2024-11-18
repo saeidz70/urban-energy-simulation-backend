@@ -90,22 +90,19 @@ class FeatureFactory(Config):
     def usage(self):
         building_usage = BuildingUsageProcessor()
         building_usage.process()
-        pass
 
     def n_family(self):
         family_calculation = FamilyCalculator()
         family_calculation.run()
-        pass
 
     def year_of_construction(self):
-        # year_of_construction = CensusBuiltYear()
-        # year_of_construction.run()
+        # year_of_construction = YearOfConstruction()
+        # year_of_construction.assign_construction_year()
         pass
 
     def neighbours_ids(self):
         neighbours_ids = NeighboursIds()
         neighbours_ids.add_neighbour_ids()
-
 
     def neighbours_surfaces(self):
         pass
