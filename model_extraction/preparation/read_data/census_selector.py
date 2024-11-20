@@ -42,6 +42,11 @@ class CensusSelector(Config):
         if self.selected_census_gdf is None or self.selected_census_gdf.empty:
             raise ValueError("No census sections selected to save.")
 
+        # Keep only the specified columns and geometry
+        columns_to_keep = ['geometry', 'SEZ2011', 'E3', 'E4', 'E8', 'E9', 'E10', 'E11', 'E12', 'E13', 'E14', 'E15',
+                           'E16', 'PF1', 'P1']
+        self.selected_census_gdf = self.selected_census_gdf[columns_to_keep]
+
         self.selected_census_gdf.to_file(self.output_path, driver='GeoJSON')
         print(f"Selected census sections successfully saved to {self.output_path}")
 

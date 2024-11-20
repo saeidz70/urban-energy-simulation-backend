@@ -16,76 +16,94 @@ class UtilityProcess(Config):
         self.data_validation = DataValidation()
 
     def process_feature(self, feature, buildings_gdf):
-        # Ensure feature column exists in buildings_gdf
+        """
+        Process a specific feature and merge it into the buildings GeoDataFrame.
+        """
         if feature not in buildings_gdf.columns:
-            buildings_gdf[feature] = None
-        print(f"Starting to process feature: '{feature}'")
+            buildings_gdf[feature] = None  # Softly initialize if missing
+        print(f"Processing feature: '{feature}'")
 
-        # Retrieve feature data from different sources
+        # Retrieve feature data from various sources
         data = self._get_feature_data(feature, buildings_gdf)
-        print("Retrieved data from sources:", data.head() if data is not None else "No data retrieved")
+        if data is None or data.empty:
+            print(f"No valid data found for feature '{feature}'. Skipping processing.")
+            return buildings_gdf
 
-        # Proceed if data is valid and has expected columns
-        if data is not None and feature in data.columns and self.data_validation.validate(data):
+        # Ensure feature column exists and is merged correctly
+        buildings_gdf = self._merge_feature_data(buildings_gdf, data, feature)
+        print(f"Feature '{feature}' processed successfully.")
+        return buildings_gdf
+
+    def _merge_feature_data(self, buildings_gdf, data, feature):
+        """
+        Merge the retrieved feature data into the buildings GeoDataFrame.
+        """
+        try:
+            # Ensure data has the necessary columns
+            if 'geometry' not in data.columns or feature not in data.columns:
+                print(f"Data for '{feature}' lacks required columns. Skipping merge.")
+                return buildings_gdf
+
+            # Drop duplicates based on geometry
             data = data.drop_duplicates(subset='geometry')
-            # print("Data after removing duplicates:", data.head())
 
-            # Perform the merge and handle missing values
-            buildings_gdf = buildings_gdf.merge(data[['geometry', feature]], on='geometry', how='left',
-                                                suffixes=('', '_new'))
-            new_feature_col = f"{feature}_new"
-            # print(f"After merge, buildings_gdf columns: {buildings_gdf.head()}")
+            # Merge feature data into buildings_gdf
+            buildings_gdf = buildings_gdf.merge(
+                data[['geometry', feature]],
+                on='geometry',
+                how='left',
+                suffixes=('', '_new')
+            )
 
-            if feature == "usage":
-                buildings_gdf[new_feature_col] = buildings_gdf[new_feature_col].astype('str')
-                buildings_gdf[feature] = buildings_gdf[feature].fillna(buildings_gdf[new_feature_col])
-            else:
-                # Convert to numeric, treating errors by setting invalid parsing as NaN
-                buildings_gdf[new_feature_col] = pd.to_numeric(buildings_gdf[new_feature_col], errors='coerce')
-                buildings_gdf[feature] = buildings_gdf[feature].fillna(buildings_gdf[new_feature_col])
+            # Fill missing values
+            if feature in buildings_gdf.columns:
+                buildings_gdf[feature] = buildings_gdf[feature].fillna(buildings_gdf[f"{feature}_new"])
 
+            # Drop temporary '_new' column
+            if f"{feature}_new" in buildings_gdf.columns:
+                buildings_gdf.drop(columns=[f"{feature}_new"], inplace=True)
+
+            # Convert feature column to appropriate type
             if feature == 'n_floor':
-                # Convert 'n_floor' to integer type; use 'Int64' to accommodate NaNs as integers
-                buildings_gdf[feature] = buildings_gdf[feature].astype('Int64')
+                buildings_gdf[feature] = buildings_gdf[feature].astype('Int64', errors='ignore')
+            elif feature != "usage":
+                buildings_gdf[feature] = pd.to_numeric(buildings_gdf[feature], errors='coerce')
 
-            # Drop the temporary column
-            buildings_gdf.drop(columns=[new_feature_col], inplace=True)
-
-        print("Final buildings_gdf head after processing feature:", buildings_gdf.head())
-        return buildings_gdf[['geometry', feature]]
+            return buildings_gdf
+        except Exception as e:
+            print(f"Error merging feature '{feature}' into buildings GeoDataFrame: {e}")
+            return buildings_gdf
 
     def _get_feature_data(self, feature, buildings_gdf):
+        """
+        Retrieve feature data from OSM, user file, or database.
+        """
         data = None
         self.load_config()
         scenario_list = self.config.get("project_info", {}).get("scenarioList", [])
 
         if "baseline" in scenario_list:
             try:
+                print(f"Retrieving '{feature}' data from OSM...")
                 data = self.osm_check.get_data_from_osm(feature, buildings_gdf)
-                if data is not None:
-                    print("Data retrieved from OSM:", data.head())
             except Exception as e:
-                print(f"Error retrieving OSM data: {e}")
+                print(f"Error retrieving OSM data for '{feature}': {e}")
         else:
             try:
+                print(f"Retrieving '{feature}' data from user files...")
                 data = self.data_check.get_data_from_user(feature, buildings_gdf)
-                if data is not None:
-                    print("Data retrieved from user file:", data.head())
             except Exception as e:
-                print(f"Error retrieving user data: {e}")
+                print(f"Error retrieving user data for '{feature}': {e}")
 
-            if data is None:
+            if data is None or data.empty:
                 try:
+                    print(f"Retrieving '{feature}' data from database...")
                     data = self.db_check.get_data_from_db(feature, buildings_gdf)
-                    if data is not None:
-                        print("Data retrieved from database:", data.head())
                 except Exception as e:
-                    print(f"Error retrieving database data: {e}")
+                    print(f"Error retrieving database data for '{feature}': {e}")
 
-        # Confirm final data for the feature before returning
-        if data is None or data.empty:
-            print(f"No data retrieved for feature '{feature}' from any source.")
+        if data is not None and not data.empty:
+            print(f"Successfully retrieved '{feature}' data with columns: {data.columns}")
         else:
-            print(f"Final data retrieved for '{feature}' has columns: {data.columns}")
-
+            print(f"No data available for '{feature}' from any source.")
         return data

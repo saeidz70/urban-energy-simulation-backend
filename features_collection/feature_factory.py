@@ -14,10 +14,12 @@ from features_collection.features.n_floor import FloorProcess
 from features_collection.features.neighbours_ids import NeighboursIds
 from features_collection.features.net_leased_area import NetLeasedAreaCalculator
 from features_collection.features.project_id import ProjectIdGenerator
+from features_collection.features.tabula_id import TabulaID
 from features_collection.features.tabula_type import TabulaType
 from features_collection.features.tot_area_per_cens_id import TotalAreaPerCensusCalculator
 from features_collection.features.usage import BuildingUsageProcessor
 from features_collection.features.w2w import W2W
+from features_collection.features.year_of_construction import YearOfConstruction
 
 
 class FeatureFactory(Config):
@@ -96,9 +98,9 @@ class FeatureFactory(Config):
         family_calculation.run()
 
     def year_of_construction(self):
-        # year_of_construction = YearOfConstruction()
-        # year_of_construction.assign_construction_year()
-        pass
+        year_of_construction = YearOfConstruction()
+        year_of_construction.run()
+        # pass
 
     def neighbours_ids(self):
         neighbours_ids = NeighboursIds()
@@ -108,6 +110,6 @@ class FeatureFactory(Config):
         pass
 
     def tabula_id(self):
-        # tabula_id = TabulaAssigner()
-        # tabula_id.assign_tabula_data()
+        tabula_id = TabulaID()
+        tabula_id.run()
         pass

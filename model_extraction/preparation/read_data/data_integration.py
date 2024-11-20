@@ -26,6 +26,7 @@ class DataIntegration(Config):
         # Perform spatial join
         integrated = gpd.sjoin(buildings, boundaries, how='inner', predicate='within')
 
+        self.save_integrated(integrated)
         return integrated
 
     def save_integrated(self, integrated_gdf):
