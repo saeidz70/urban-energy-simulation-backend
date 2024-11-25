@@ -17,6 +17,7 @@ geojson = "^3.1.0"
 djangorestframework = "3.15.2"
 PyKrige = "^1.7.2"
 rasterio = "^1.4.2"
+rioxarray = "0.18.0"
 
 [build-system]
 requires = ["poetry-core"]

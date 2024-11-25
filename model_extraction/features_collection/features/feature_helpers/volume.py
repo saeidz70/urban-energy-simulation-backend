@@ -1,4 +1,3 @@
-import json
 import os
 
 import geopandas as gpd
@@ -9,6 +8,9 @@ from config.config import Config
 class BuildingVolumeCalculator(Config):
     def __init__(self):
         super().__init__()
+        self.feature_name = 'volume'
+        self.height_column = 'height'
+        self.area_column = 'area'
         self.buildings_geojson_path = self.config['building_path']
         # Load GeoJSON file during initialization
         self.buildings_gdf = gpd.read_file(self.buildings_geojson_path)
@@ -16,16 +18,17 @@ class BuildingVolumeCalculator(Config):
 
     def calculate_volume(self):
         # Check for required columns and calculate volume
-        if 'area' in self.buildings_gdf.columns and 'height' in self.buildings_gdf.columns:
+        if self.area_column in self.buildings_gdf.columns and self.height_column in self.buildings_gdf.columns:
             # Calculate volume using area and height
-            self.buildings_gdf['volume'] = (self.buildings_gdf['area'] * self.buildings_gdf['height']).round(2)
+            self.buildings_gdf[self.feature_name] = (
+                        self.buildings_gdf[self.area_column] * self.buildings_gdf[self.height_column]).round(2)
 
             # Reorder columns to place 'volume' after 'area'
             cols = self.buildings_gdf.columns.tolist()
-            if 'area' in cols:
-                area_index = cols.index('area')
+            if self.area_column in cols:
+                area_index = cols.index(self.area_column)
                 # Insert 'volume' after 'area'
-                cols.insert(area_index + 1, cols.pop(cols.index('volume')))
+                cols.insert(area_index + 1, cols.pop(cols.index(self.feature_name)))
                 self.buildings_gdf = self.buildings_gdf[cols]
         else:
             raise ValueError("Required columns 'area' and 'height' are not present in the GeoDataFrame.")

@@ -3,6 +3,7 @@ from model_extraction.preparation.data_cleaning.clean_null import CleanGeoData
 from model_extraction.preparation.read_data.building_extractor import BuildingExtractor
 from model_extraction.preparation.read_data.census_selector import CensusSelector
 from model_extraction.preparation.read_data.data_integration import DataIntegration
+from model_extraction.preparation.read_data.db_census_fetcher import DbCensusFetcher
 from model_extraction.preparation.read_data.get_selected_boundries import GetSelectedBoundaries
 
 
@@ -10,10 +11,10 @@ class PrepMain(Config):
     def __init__(self):
         super().__init__()
 
-    # def fetch_census_data(self):
-    #     census_fetcher = DbCensusFetcher()
-    #     print("Fetching census data")
-    #     census_fetcher.run()
+    def fetch_census_data(self):
+        census_fetcher = DbCensusFetcher()
+        print("Fetching census data")
+        census_fetcher.run()
 
     def select_census_sections(self):
         census_selector = CensusSelector()

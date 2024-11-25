@@ -1,5 +1,4 @@
-from features_collection.feature_factory import FeatureFactory
-from features_collection.features.year_of_construction import YearOfConstruction
+from model_extraction.features_collection.feature_factory import FeatureFactory
 
 if __name__ == '__main__':
     # config_path = 'config/configuration.json'
@@ -30,11 +29,15 @@ if __name__ == '__main__':
     # processing.tot_area_per_cens_id()
     # processing.usage()
     # processing.n_family()
-    # processing.population_calculator()
-    # processing.process_census_built_year()
-    # processing.process_osm_built_year()
-    # processing.process_archetype()
-    # processing.run_all_processing()
+    processing.year_of_construction()
+    # processing.construction_type()
+    # processing.heating()
+    # processing.cooling()
+    # processing.hvac_type()
+    # processing.tabula_type()
+    # processing.tabula_id()
+
+
 
     # manager = ScenarioManager()
     # manager.run_scenarios()
@@ -51,5 +54,3 @@ if __name__ == '__main__':
     # census_selector = CensusSelector()
     # census_selector.run()
 
-    year_of_construction = YearOfConstruction()
-    year_of_construction.run()

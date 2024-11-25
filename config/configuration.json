@@ -5,20 +5,16 @@
     "output_path": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/output_files/output_building.geojson",
     "polygon_from_building": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/output_files/polygon_from_building.geojson",
     "census_path": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/input_files/shp/Torino_sezCens_data.geojson",
-    "selected_census_sections": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/output_files/selected_census_section.geojson",
     "db_census_sections": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/output_files/db_census_section.geojson",
-    "osm_integrated_selected_path": "data_source/output_files/osm_integrated_selected.geojson",
     "selected_boundaries": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/output_files/selected_boundaries.geojson",
-    "osm_building_path": "data_source/output_files/OSM_building.geojson",
-    "Building_usage_path": "data_source/output_files/Building_usage.geojson",
     "dtm_path": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/input_files/DTM/DTM5_155.tif",
     "dsm_path": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/input_files/DSM/dsm.tif",
     "tabula": "data_source/input_files/TABULA/TABULA_matching.csv",
-    "DEFAULT_EPSG_CODE": 32632,
+    "PROJECTED_CRS": 32632,
     "DEFAULT_CRS": 4326,
     "osm_overpass_url": "http://overpass-api.de/api/interpreter",
-    "database_url": "http://172.25.13.21:8000/api/new_validated_building_scenario/",
-    "db_census_url": "http://172.25.13.21:8000/api/census_spatial_post/",
+    "database_url": "http://172.25.13.11:8000/api/new_validated_building_scenario/",
+    "db_census_url": "http://172.25.13.11:8000/api/census_spatial_post/",
     "database_headers": {
         "Authorization": "Token 90c6fa0c5d08c5a7a72f2b452757592e1c4b8c9b",
         "Content-Type": "application/json"
@@ -57,6 +53,7 @@
             45.067195959891066
         ]
     ],
+
     "translation": {
         "height": "UN_VOL_AV",
         "area": "Area",
@@ -79,128 +76,13 @@
         "heating": "bool",
         "geometry": "geometry"
     },
-    "census": {
-        "census_id": "SEZ2011",
-        "built_year": {
-            "E8": "1900-1919",
-            "E9": "1919-1945",
-            "E10": "1946-1960",
-            "E11": "1961-1970",
-            "E12": "1971-1980",
-            "E13": "1981-1990",
-            "E14": "1991-2000",
-            "E15": "2001-2005",
-            "E16": "2005-2022"
-        },
-        "census_usage": {
-            "E3": "residential",
-            "E4": "non residential"
-        },
-        "population_columns": {
-            "n_family": "PF1",
-            "Population": "P1"
-        }
-    },
-    "tabula_mapping": {
-        "1900": {
-            "SFH": "IT.MidClim.SFH.01.Gen",
-            "TH": "IT.MidClim.TH.01.Gen",
-            "MFH": "IT.MidClim.MFH.01.Gen",
-            "AB": "IT.MidClim.AB.01.Gen"
-        },
-        "1901-1920": {
-            "SFH": "IT.MidClim.SFH.02.Gen",
-            "TH": "IT.MidClim.TH.02.Gen",
-            "MFH": "IT.MidClim.MFH.02.Gen",
-            "AB": "IT.MidClim.AB.02.Gen"
-        },
-        "1921-1945": {
-            "SFH": "IT.MidClim.SFH.03.Gen",
-            "TH": "IT.MidClim.TH.03.Gen",
-            "MFH": "IT.MidClim.MFH.03.Gen",
-            "AB": "IT.MidClim.AB.03.Gen"
-        },
-        "1946-1960": {
-            "SFH": "IT.MidClim.SFH.04.Gen",
-            "TH": "IT.MidClim.TH.04.Gen",
-            "MFH": "IT.MidClim.MFH.04.Gen",
-            "AB": "IT.MidClim.AB.04.Gen"
-        },
-        "1961-1975": {
-            "SFH": "IT.MidClim.SFH.05.Gen",
-            "TH": "IT.MidClim.TH.05.Gen",
-            "MFH": "IT.MidClim.MFH.05.Gen",
-            "AB": "IT.MidClim.AB.05.Gen"
-        },
-        "1976-1990": {
-            "SFH": "IT.MidClim.SFH.06.Gen",
-            "TH": "IT.MidClim.TH.06.Gen",
-            "MFH": "IT.MidClim.MFH.06.Gen",
-            "AB": "IT.MidClim.AB.06.Gen"
-        },
-        "1991-2005": {
-            "SFH": "IT.MidClim.SFH.07.Gen",
-            "TH": "IT.MidClim.TH.07.Gen",
-            "MFH": "IT.MidClim.MFH.07.Gen",
-            "AB": "IT.MidClim.AB.07.Gen"
-        },
-        "2006+": {
-            "SFH": "IT.MidClim.SFH.08.Gen",
-            "TH": "IT.MidClim.TH.08.Gen",
-            "MFH": "IT.MidClim.MFH.08.Gen",
-            "AB": "IT.MidClim.AB.08.Gen"
-        }
-    },
-    "limits": {
-        "min_height": 3,
-        "max_height": 300,
-        "min_area": 50,
-        "max_area": 100000,
-        "avg_floor_height": 3.2,
-        "usage": [
-            "residential",
-            "apartments",
-            "house",
-            "commercial"
-        ]
-    },
-    "features": {
-        "building_id": "str",
-        "height": "int",
-        "area": "float",
-        "n_floor": "int",
-        "net_leased_area": "float",
-        "gross_floor_area": "float",
-        "usage": "str",
-        "year_of_construction": "int",
-        "census_id": "int",
-        "tot_area_per_cens_id": "float",
-        "n_family": "int",
-        "construction_type": "str",
-        "w2w": "float",
-        "neighbours_surfaces": "str(list)",
-        "neighbours_ids": "str(list)",
-        "hvac_type": "str",
-        "tabula_type": "str",
-        "tabula_id": "str",
-        "cooling": "bool",
-        "heating": "bool",
-        "geometry": "polygon"
-    },
+
     "OSM_tags": {
         "height": "height",
         "area": "area",
         "n_floor": "building:levels",
         "usage": "building",
         "year_of_construction": "start_date"
-    },
-    "utility_features": {
-        "height": "float",
-        "n_floor": "int",
-        "usage": "str",
-        "year_of_construction": "tuple",
-        "n_family": "int",
-        "construction_type": "tuple"
     },
     "scenarios": {
         "baseline_scenario": [
@@ -219,13 +101,13 @@
             "n_family",
             "construction_type",
             "w2w",
-            "neighbours_ids",
-            "neighbours_surfaces",
             "cooling",
             "heating",
             "hvac_type",
             "tabula_type",
-            "tabula_id"
+            "tabula_id",
+            "neighbours_ids",
+            "neighbours_surfaces"
         ],
         "geometry_scenario": [
             "building_id",
@@ -333,6 +215,202 @@
         "scenarioList": [
             "baseline"
         ],
-        "project_id": "5d10fe4d-8000-4b9a-9114-e5b52e0b25bf"
+        "project_id": "f3162638-36c3-4964-85ea-7dd6574629bf"
+    },
+    "features": {
+        "building_id": {
+            "type": "UUID"
+        },
+        "height": {
+            "type": "float",
+            "min": 5,
+            "max": 300,
+            "description": "Building height in meters."
+        },
+        "area": {
+            "type": "float",
+            "min": 50,
+            "max": 100000,
+            "description": "Building area in square meters."
+        },
+        "n_floor": {
+            "type": "int",
+            "min": 1,
+            "max": 100,
+            "avg_floor_height": 3.2,
+            "description": "Number of floors in the building."
+        },
+        "net_leased_area": {
+            "type": "float",
+            "description": "Net leased area in square meters."
+        },
+        "gross_floor_area": {
+            "type": "float",
+            "description": "Gross floor area in square meters."
+        },
+        "usage": {
+            "type": "str",
+            "allowed_values": [
+                "residential",
+                "apartments",
+                "house",
+                "commercial",
+                "yes"
+            ],
+            "census_usage": {
+                "E3": "residential",
+                "E4": "non residential"
+            },
+            "description": "Building usage type."
+        },
+        "year_of_construction": {
+            "type": "int",
+            "min": 1800,
+            "max": 2022,
+            "census_built_year": {
+                "E8": "1900-1919",
+                "E9": "1919-1945",
+                "E10": "1946-1960",
+                "E11": "1961-1970",
+                "E12": "1971-1980",
+                "E13": "1981-1990",
+                "E14": "1991-2000",
+                "E15": "2001-2005",
+                "E16": "2005-2022"
+            },
+            "description": "Year when the building was constructed."
+        },
+        "census_id": {
+            "type": "int",
+            "census_id_column": "SEZ2011",
+            "description": "Census section identifier."
+        },
+        "tot_area_per_cens_id": {
+            "type": "float",
+            "description": "Total area per census ID."
+        },
+        "n_family": {
+            "type": "int",
+            "census_n_family": "PF1",
+            "description": "Number of families in the building."
+        },
+        "construction_type": {
+            "type": "str",
+            "allowed_values": [
+                "high",
+                "med",
+                "low"
+            ],
+            "construction_period": {
+                "1800-1945": "low",
+                "1946-1990": "med",
+                "1991-2022": "high"
+            },
+            "description": "Type of construction."
+        },
+        "w2w": {
+            "type": "float",
+            "description": "Wall-to-wall ratio."
+        },
+        "neighbours_surfaces": {
+            "type": "list[str]",
+            "description": "List of neighbor buildings surfaces in 100m radios."
+        },
+        "neighbours_ids": {
+            "type": "list[str]",
+            "radius": 100,
+            "description": "List of neighbor IDs in 100m radios."
+        },
+        "hvac_type": {
+            "type": "str",
+            "values": [
+                "GB",
+                "HP"
+            ],
+            "description": "HVAC system type."
+        },
+        "tabula_type": {
+            "type": "str",
+            "values": [
+                "SFH",
+                "TH",
+                "MFH",
+                "AB"
+            ],
+            "description": "Tabula building type."
+        },
+        "tabula_id": {
+            "type": "str",
+            "tabula_mapping": {
+                "1900": {
+                    "SFH": "IT.MidClim.SFH.01.Gen",
+                    "TH": "IT.MidClim.TH.01.Gen",
+                    "MFH": "IT.MidClim.MFH.01.Gen",
+                    "AB": "IT.MidClim.AB.01.Gen"
+                },
+                "1901-1920": {
+                    "SFH": "IT.MidClim.SFH.02.Gen",
+                    "TH": "IT.MidClim.TH.02.Gen",
+                    "MFH": "IT.MidClim.MFH.02.Gen",
+                    "AB": "IT.MidClim.AB.02.Gen"
+                },
+                "1921-1945": {
+                    "SFH": "IT.MidClim.SFH.03.Gen",
+                    "TH": "IT.MidClim.TH.03.Gen",
+                    "MFH": "IT.MidClim.MFH.03.Gen",
+                    "AB": "IT.MidClim.AB.03.Gen"
+                },
+                "1946-1960": {
+                    "SFH": "IT.MidClim.SFH.04.Gen",
+                    "TH": "IT.MidClim.TH.04.Gen",
+                    "MFH": "IT.MidClim.MFH.04.Gen",
+                    "AB": "IT.MidClim.AB.04.Gen"
+                },
+                "1961-1975": {
+                    "SFH": "IT.MidClim.SFH.05.Gen",
+                    "TH": "IT.MidClim.TH.05.Gen",
+                    "MFH": "IT.MidClim.MFH.05.Gen",
+                    "AB": "IT.MidClim.AB.05.Gen"
+                },
+                "1976-1990": {
+                    "SFH": "IT.MidClim.SFH.06.Gen",
+                    "TH": "IT.MidClim.TH.06.Gen",
+                    "MFH": "IT.MidClim.MFH.06.Gen",
+                    "AB": "IT.MidClim.AB.06.Gen"
+                },
+                "1991-2005": {
+                    "SFH": "IT.MidClim.SFH.07.Gen",
+                    "TH": "IT.MidClim.TH.07.Gen",
+                    "MFH": "IT.MidClim.MFH.07.Gen",
+                    "AB": "IT.MidClim.AB.07.Gen"
+                },
+                "2006+": {
+                    "SFH": "IT.MidClim.SFH.08.Gen",
+                    "TH": "IT.MidClim.TH.08.Gen",
+                    "MFH": "IT.MidClim.MFH.08.Gen",
+                    "AB": "IT.MidClim.AB.08.Gen"
+                }
+            },
+            "description": "Tabula ID for building identified by year_of_construction and tabula_type."
+        },
+        "cooling": {
+            "type": "bool",
+            "values": [
+                true,
+                false
+            ],
+            "description": "Indicates if the building has cooling."
+        },
+        "heating": {
+            "type": "bool",
+            "values": [
+                true,
+                false
+            ],
+            "description": "Indicates if the building has heating."
+        },
+        "geometry": {
+            "type": "polygon"
+        }
     }
 }

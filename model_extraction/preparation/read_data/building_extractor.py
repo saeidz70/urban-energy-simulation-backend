@@ -10,6 +10,7 @@ from config.config import Config
 class BuildingExtractor(Config):
     def __init__(self):
         super().__init__()
+        self.load_config()
         self.user_file_path = self.config['user_building_file']
         self.output_file_path = self.config['building_path']
         self.boundary_geojson_path = self.config['selected_boundaries']

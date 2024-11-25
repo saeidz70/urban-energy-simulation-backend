@@ -1,5 +1,4 @@
-import json
-from features_collection.feature_factory import FeatureFactory
+from model_extraction.features_collection.feature_factory import FeatureFactory
 
 
 class BaseScenario(FeatureFactory):
