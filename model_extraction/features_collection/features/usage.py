@@ -29,7 +29,8 @@ class BuildingUsageProcessor(Config):
             if usage_gdf is not None:
                 buildings_gdf = self._merge_usage_data(buildings_gdf, usage_gdf)
 
-            filtered_gdf = self._filter_usage(buildings_gdf)
+            filtered_gdf = buildings_gdf
+            # filtered_gdf = self._filter_usage(buildings_gdf)
             self._save_filtered_data(filtered_gdf)
             print("Building usage processing completed.")
             return filtered_gdf

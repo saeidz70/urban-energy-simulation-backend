@@ -42,8 +42,8 @@ class PrepMain(Config):
 
 
     def run_all_preparations(self):
-        # self.fetch_census_data()
-        self.select_census_sections()
+        self.fetch_census_data()
+        # self.select_census_sections()
         self.getBoundaries()
         self.building_extraction()
         self.data_integration()

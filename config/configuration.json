@@ -13,8 +13,9 @@
     "PROJECTED_CRS": 32632,
     "DEFAULT_CRS": 4326,
     "osm_overpass_url": "http://overpass-api.de/api/interpreter",
-    "database_url": "http://172.25.13.11:8000/api/new_validated_building_scenario/",
-    "db_census_url": "http://172.25.13.11:8000/api/census_spatial_post/",
+    "database_url": "http://172.25.13.36:8001/api/new_validated_building_scenario/",
+    "db_census_url": "http://172.25.13.36:8001/api/census_spatial_post/",
+    "db_height_url": "http://172.25.13.36:8000/height/",
     "database_headers": {
         "Authorization": "Token 90c6fa0c5d08c5a7a72f2b452757592e1c4b8c9b",
         "Content-Type": "application/json"
@@ -53,7 +54,6 @@
             45.067195959891066
         ]
     ],
-
     "translation": {
         "height": "UN_VOL_AV",
         "area": "Area",
@@ -76,7 +76,6 @@
         "heating": "bool",
         "geometry": "geometry"
     },
-
     "OSM_tags": {
         "height": "height",
         "area": "area",
@@ -89,14 +88,14 @@
             "project_id",
             "building_id",
             "census_id",
-            "area",
             "height",
+            "usage",
+            "area",
             "volume",
             "n_floor",
             "gross_floor_area",
             "net_leased_area",
             "tot_area_per_cens_id",
-            "usage",
             "year_of_construction",
             "n_family",
             "construction_type",
@@ -111,8 +110,8 @@
         ],
         "geometry_scenario": [
             "building_id",
-            "area",
             "height",
+            "area",
             "volume",
             "n_floor",
             "net_leased_area",
@@ -122,8 +121,8 @@
         ],
         "demographic_scenario": [
             "census_id",
-            "n_family",
             "usage",
+            "n_family",
             "year_of_construction",
             "tot_area_per_cens_id"
         ],
@@ -139,83 +138,59 @@
     },
     "study_case": [
         [
-            7.655926633390336,
-            45.067195959891066
+            7.669444336937602,
+            45.06900069812215
         ],
         [
-            7.656377244520445,
-            45.06916608375739
+            7.667380865137744,
+            45.05406104531136
         ],
         [
-            7.655068326475843,
-            45.06956010038213
+            7.689305253016073,
+            45.04658975496824
         ],
         [
-            7.653802323776968,
-            45.06954494594678
+            7.700654347918572,
+            45.06207792974686
         ],
         [
-            7.65262215176954,
-            45.067756694366004
-        ],
-        [
-            7.6543173079256634,
-            45.06686254759557
-        ],
-        [
-            7.655561852951677,
-            45.06639273606023
-        ],
-        [
-            7.655926633390336,
-            45.067195959891066
+            7.669444336937602,
+            45.06900069812215
         ]
     ],
     "project_info": {
-        "projectName": "Torino",
+        "projectName": "156356+3",
         "mapCenter": {
-            "latitude": 45.43676673688583,
-            "longitude": 7.606706647981852,
+            "latitude": 45.05793235703715,
+            "longitude": 7.681696200752498,
             "zoom": 8
         },
         "polygonArray": [
             [
-                7.655926633390336,
-                45.067195959891066
+                7.669444336937602,
+                45.06900069812215
             ],
             [
-                7.656377244520445,
-                45.06916608375739
+                7.667380865137744,
+                45.05406104531136
             ],
             [
-                7.655068326475843,
-                45.06956010038213
+                7.689305253016073,
+                45.04658975496824
             ],
             [
-                7.653802323776968,
-                45.06954494594678
+                7.700654347918572,
+                45.06207792974686
             ],
             [
-                7.65262215176954,
-                45.067756694366004
-            ],
-            [
-                7.6543173079256634,
-                45.06686254759557
-            ],
-            [
-                7.655561852951677,
-                45.06639273606023
-            ],
-            [
-                7.655926633390336,
-                45.067195959891066
+                7.669444336937602,
+                45.06900069812215
             ]
         ],
         "scenarioList": [
             "baseline"
         ],
-        "project_id": "f3162638-36c3-4964-85ea-7dd6574629bf"
+        "project_id": "e28dc5ff-1eda-421e-b6f2-5364f423f31b"
     },
     "features": {
         "building_id": {

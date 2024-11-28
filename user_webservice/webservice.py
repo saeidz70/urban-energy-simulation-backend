@@ -1,4 +1,6 @@
+import cProfile
 import json
+import pstats
 
 import cherrypy
 from cherrypy import response
@@ -6,6 +8,23 @@ from cherrypy import response
 from config.config import Config
 from user_webservice.helper import DataHelper  # Assuming helper is correctly set up here
 
+
+# Profiling function
+def profile(output_file):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            pr = cProfile.Profile()
+            pr.enable()
+            result = func(*args, **kwargs)
+            pr.disable()
+            with open(output_file, 'w') as f:
+                ps = pstats.Stats(pr, stream=f).sort_stats('cumulative')
+                ps.print_stats()
+            return result
+
+        return wrapper
+
+    return decorator
 
 # Base server class with shared configuration and helper
 class BaseServer(Config):
@@ -21,10 +40,10 @@ class BaseServer(Config):
         cherrypy.response.headers['Access-Control-Max-Age'] = '3600'
         cherrypy.response.headers['Content-Type'] = 'text/plain'
 
-
 # Polygon Server: Handles requests specific to polygonArray
 class PolygonServer(BaseServer):
     @cherrypy.tools.json_out()
+    @profile('polygon_profile.txt')
     def POST(self):
         try:
             body = cherrypy.request.body.read().decode('utf-8')
@@ -51,10 +70,10 @@ class PolygonServer(BaseServer):
     def GET(self):
         return "GET request received on PolygonServer"
 
-
 # Building Server: Handles requests specific to buildingGeometry
 class BuildingServer(BaseServer):
     @cherrypy.tools.json_out()
+    @profile('building_profile.txt')
     def POST(self):
         try:
             body = cherrypy.request.body.read().decode('utf-8')
@@ -82,11 +101,9 @@ class BuildingServer(BaseServer):
     def GET(self):
         return "GET request received on BuildingServer"
 
-
 # CORS setup function
 def CORS():
     cherrypy.response.headers["Access-Control-Allow-Origin"] = "*"
-
 
 # Server configuration and startup
 if __name__ == '__main__':
@@ -98,8 +115,8 @@ if __name__ == '__main__':
         }
     }
 
-    cherrypy.server.socket_host = '127.0.0.1'
-    # cherrypy.server.socket_host = '172.25.12.16'
+    # cherrypy.server.socket_host = '127.0.0.1'
+    cherrypy.server.socket_host = '172.25.13.5'
     cherrypy.config.update({'server.socket_port': 8080})
     cherrypy.tools.CORS = cherrypy.Tool('before_handler', CORS)
 
