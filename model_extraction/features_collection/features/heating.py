@@ -1,25 +1,45 @@
 import random
 
-import geopandas as gpd
+import pandas as pd
 
-from config.config import Config
+from model_extraction.features_collection.base_feature import BaseFeature
 
 
-class Heating(Config):
+class Heating(BaseFeature):
     def __init__(self):
         super().__init__()
         self.feature_name = 'heating'
-        self.building_file = self.config.get('building_path')
         self.heating_config = self.config.get('features', {}).get('heating', {})
-        self.cooling_value = self.heating_config.get('values', None)
+        self.heating_value = self.heating_config.get('values', None)
 
-    def run(self):
-        # Load building data
-        buildings_gdf = gpd.read_file(self.building_file)
+    def run(self, gdf):
+        # Initialize the feature column if it does not exist
+        gdf = self.initialize_feature_column(gdf, self.feature_name)
 
-        # Set random True/False values for the 'heating' column
-        buildings_gdf[self.feature_name] = [random.choice(self.cooling_value) for _ in range(len(buildings_gdf))]
+        # Retrieve heating data if it is null, some rows are null, or data type is wrong
+        gdf = self.retrieve_data_from_sources(self.feature_name, gdf)
 
-        # Save updated data back to the GeoJSON file
-        buildings_gdf.to_file(self.building_file, driver='GeoJSON')
-        print(f"{self.feature_name} attribute assigned randomly for all buildings in {self.building_file}")
+        # Validate the data type of the feature in the DataFrame
+        gdf = self.validate_data(gdf, self.feature_name)
+
+        # Check if data returned is None or null
+        if gdf[self.feature_name].isnull().all():
+            gdf = self.assign_random_heating_values(gdf)
+
+        else:
+            # Check for null or invalid values in the heating column
+            invalid_rows = gdf[self.feature_name].isnull() | gdf[self.feature_name].apply(
+                lambda x: x not in self.heating_value)
+
+            # Assign random heating values for invalid rows
+            gdf.loc[invalid_rows, self.feature_name] = pd.Series(
+                [random.choice(self.heating_value) for _ in range(invalid_rows.sum())],
+                index=gdf.index[invalid_rows]
+            ).astype(gdf[self.feature_name].dtype)
+
+        return gdf
+
+    def assign_random_heating_values(self, gdf):
+        """Assign random heating values to the GeoDataFrame."""
+        gdf[self.feature_name] = [random.choice(self.heating_value) for _ in range(len(gdf))]
+        return gdf

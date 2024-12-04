@@ -18,6 +18,7 @@ class PrepMain(Config):
 
     def select_census_sections(self):
         census_selector = CensusSelector()
+        print("Selecting census sections")
         census_selector.run()
 
     def getBoundaries(self):

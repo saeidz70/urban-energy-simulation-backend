@@ -1,22 +1,35 @@
-import geopandas as gpd
-
-from config.config import Config
+from model_extraction.features_collection.base_feature import BaseFeature
 
 
-class W2W(Config):
+class W2W(BaseFeature):
+    """
+    A class to assign W2W values to buildings.
+    """
     def __init__(self):
         super().__init__()
         self.feature_name = 'w2w'
-        self.building_file = self.config.get('building_path')  # Path to the building data file
         self.feature_config = self.config.get('features', {}).get(self.feature_name, {})
 
-    def run(self):
-        # Load the building data
-        buildings_gdf = gpd.read_file(self.building_file)
+    def run(self, gdf):
+        print("Starting W2W assignment...")  # Essential print 1
 
-        # Check if 'w2w' column exists; if not, add it with default values of 0.5
-        buildings_gdf[self.feature_name] = 0.5
+        # Initialize the feature column if it does not exist
+        gdf = self.initialize_feature_column(gdf, self.feature_name)
 
-        # Save the updated data back to the GeoJSON file
-        buildings_gdf.to_file(self.building_file, driver='GeoJSON')
-        print(f"{self.feature_name} attribute set to 0.5 for all buildings in {self.building_file}")
+        # Retrieve W2W data if it is null, some rows are null, or data type is wrong
+        gdf = self.retrieve_data_from_sources(self.feature_name, gdf)
+
+        # Validate the data type of the feature in the DataFrame
+        gdf = self.validate_data(gdf, self.feature_name)
+
+        # Check if data returned is None or null
+        if gdf[self.feature_name].isnull().all():
+            gdf = self.assign_default_w2w_value(gdf)
+
+        print("W2W assignment completed.")  # Essential print 2
+        return gdf
+
+    def assign_default_w2w_value(self, gdf):
+        """Assigns a default W2W value to the feature column."""
+        gdf[self.feature_name] = 0.5
+        return gdf

@@ -1,31 +1,34 @@
 import uuid
 
-import geopandas as gpd
-
-from config.config import Config
+from model_extraction.features_collection.base_feature import BaseFeature
 
 
-class BuildingIDAssigner(Config):
+class BuildingID(BaseFeature):
     def __init__(self):
         super().__init__()
         self.feature_name = 'building_id'
-        self.building_file_path = self.config['building_path']
         self.feature_config = self.config.get('features', {}).get(self.feature_name, {})
 
-    def assign_unique_id(self):
-        buildings_gdf = gpd.read_file(self.building_file_path)
+    def run(self, gdf):
+        if gdf is None:
+            raise ValueError("The input GeoDataFrame (gdf) is None.")
 
-        # Ensure a unique ID column exists
-        if self.feature_name not in buildings_gdf.columns:
-            # Assign a truncated UUID (8 characters) for each building
-            buildings_gdf[self.feature_name] = [str(uuid.uuid4()) for _ in range(len(buildings_gdf))]
+        initial_id_count = gdf[self.feature_name].notnull().sum() if self.feature_name in gdf.columns else 0
+        print(f"Number of building IDs before: {initial_id_count}")
 
-        # Correctly reorder columns to make 'census_id' the first column
-        columns = [self.feature_name] + [col for col in buildings_gdf.columns if col != self.feature_name]
-        buildings_gdf = buildings_gdf.reindex(columns=columns)
+        # Initialize the feature column if it does not exist
+        gdf = self.initialize_feature_column(gdf, self.feature_name)
+        # Assign unique IDs to buildings that do not have one
+        gdf = self.assign_unique_id(gdf)
 
-        # Save the updated data back to file
-        buildings_gdf.to_file(self.building_file_path, driver='GeoJSON')
-        print("IDs have been assigned to each building.")
+        # Print the number of IDs added
+        final_id_count = gdf[self.feature_name].notnull().sum()
+        ids_added = final_id_count - initial_id_count
+        print(f"Number of building IDs added: {ids_added}")
 
-        return buildings_gdf
+        return gdf
+
+    def assign_unique_id(self, gdf):
+        if self.feature_name not in gdf.columns or gdf[self.feature_name].isnull().any():
+            gdf[self.feature_name] = [str(uuid.uuid4()) for _ in range(len(gdf))]
+        return gdf

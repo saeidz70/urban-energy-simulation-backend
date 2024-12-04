@@ -35,7 +35,8 @@ class DBHeightFetcher(Config):
         except requests.RequestException as e:
             raise RuntimeError(f"Error fetching {feature_name}: {e}")
 
-    def update_heights(self, gdf, feature_name):
+    def run(self, gdf, feature_name):
+        print(f"Fetching {feature_name} from the database... PLEASE WAIT.")
         """
         Updates the GeoDataFrame with the fetched feature values.
         """
@@ -44,4 +45,5 @@ class DBHeightFetcher(Config):
             print(f"No data returned for {feature_name}.")
             return gdf
         gdf[feature_name] = gdf[self.building_id_column].map(feature_map).fillna(gdf.get(feature_name))
+        print(f"Successfully fetched {feature_name} from the database.")
         return gdf

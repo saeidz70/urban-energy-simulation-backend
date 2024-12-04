@@ -1,5 +1,5 @@
-import json
-
+import requests
+from config.config import Config
 import requests
 
 from config.config import Config
@@ -11,32 +11,23 @@ class DBServerUploader(Config):
         self.load_config()
         self.url = self.config["database_url"]
         self.headers = self.config["database_headers"]
-        # Retrieve the output path from the config file
-        self.geojson_path = self.config.get("output_path")
-        if not self.geojson_path:
-            raise ValueError("Output path is not specified in the config file.")
 
-    def load_geojson(self):
-        # Load the GeoJSON file
-        try:
-            with open(self.geojson_path, 'r') as file:
-                geojson_data = json.load(file)
-            return geojson_data
-        except FileNotFoundError:
-            print(f"Error: File {self.geojson_path} not found.")
-            return None
-        except json.JSONDecodeError:
-            print("Error: Failed to decode JSON from the GeoJSON file.")
-            return None
+    def validate_geojson(self, geojson_data):
+        """Validate the GeoJSON data structure."""
+        if not isinstance(geojson_data, dict):
+            print("Invalid GeoJSON: Data is not a dictionary.")
+            return False
+        if "type" not in geojson_data or "features" not in geojson_data:
+            print("Invalid GeoJSON: Missing 'type' or 'features' keys.")
+            return False
+        return True
 
-    def upload_geojson(self):
-        # Load the GeoJSON data
-        geojson_data = self.load_geojson()
-        if geojson_data is None:
-            print("GeoJSON data could not be loaded. Upload aborted.")
+    def upload_geojson(self, geojson_data):
+        """Upload the GeoJSON data to the server."""
+        if not self.validate_geojson(geojson_data):
+            print("GeoJSON data validation failed. Upload aborted.")
             return None
 
-        # Send the POST request
         try:
             response = requests.post(self.url, headers=self.headers, json=geojson_data)
             response.raise_for_status()  # Raise an error for bad responses

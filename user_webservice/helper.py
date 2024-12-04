@@ -16,12 +16,14 @@ class DataHelper(Config):
         self.default_crs = f"EPSG:{self.config.get('DEFAULT_CRS', 4326)}"
         self.manager = ScenarioManager()
         self.polygon_creator = BuildingPolygonCreator()
+        self.project_id = None
 
     def save_config(self):
         with open(self.config_path, 'w') as f:
             json.dump(self.config, f, indent=4)
 
     def process_data(self, feature, data):
+        self.project_id = data.get("project_id", "")
         if feature == "polygonArray":
             self.process_polygon_array(data)
         elif feature == "buildingGeometry":
@@ -35,13 +37,11 @@ class DataHelper(Config):
         if not polygon_array:
             raise ValueError("No polygonArray data provided.")
 
-        # Save polygonArray data into the config file under "study_case"
         self.save_project_info(data)
-        self.config["study_case"] = polygon_array
         self.save_config()
-        print("Polygon data saved in study_case of config.json.")
+        print("Polygon data saved in config.json.")
         self.polygon_creator.user_polygon(polygon_array)
-        self.manager.run_scenarios()
+        self.manager.run_scenarios(self.project_id)
 
     def process_building_geometry(self, data):
         building_geometry = data.get("buildingGeometry")
@@ -79,14 +79,12 @@ class DataHelper(Config):
             buildings_gdf.to_file(self.user_building_file, driver="GeoJSON")
             print(f"Building geometry saved to {self.user_building_file} in CRS {self.default_crs}.")
 
-            # Clear study_case in config
-            self.config["study_case"] = []
             self.config["user_building_file"] = self.user_building_file
             self.save_project_info(data)  # Save project info
             self.save_config()
             print("Project info saved in config.json.")
             self.polygon_creator.create_polygon_from_buildings()
-            self.manager.run_scenarios()
+            self.manager.run_scenarios(self.project_id)
 
         except Exception as e:
             raise ValueError(f"Error processing building geometry: {e}")
@@ -96,7 +94,9 @@ class DataHelper(Config):
             "projectName": data.get("projectName"),
             "mapCenter": data.get("mapCenter"),
             "polygonArray": data.get("polygonArray"),
-            "scenarioList": data.get("scenarioList")
+            "scenarioList": data.get("scenarioList"),
+            "scenario_id": data.get("scenario_id"),
+            "project_id": data.get("project_id")
         }
         self.config["project_info"] = project_info
         print("Project data saved in project section of config.json.")

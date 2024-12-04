@@ -1,8 +1,15 @@
+import geopandas as gpd
+
+from config.config import Config
 from model_extraction.features_collection.feature_factory import FeatureFactory
 
 if __name__ == '__main__':
-    # config_path = 'config/configuration.json'
-
+    config_path = 'config/configuration.json'
+    config = Config()
+    building_file = config.config['building_path']
+    gdf = gpd.read_file(building_file)
+    print("Original GeoDataFrame:")
+    print(gdf.head())
     ########### PREPARATION:
     # preparation = PrepMain()
     # preparation.shapefile_to_geojson()
@@ -13,15 +20,23 @@ if __name__ == '__main__':
     # preparation.clean_data()
     # preparation.run_all_preparations()
 
+    # area_calculator = BuildingAreaCalculator()
+    # gdf = area_calculator.run(gdf)
+    #
+    # print("GeoDataFrame after calculating building areas:")
+    # print(gdf.head())
 
 
     ########## PROCESSING:
     processing = FeatureFactory()
     #
+    processing.run_feature('building_id', gdf)
+    print(gdf[['building_id']].head())
+
     # processing.building_id()
     # processing.census_id()
     # processing.area()
-    processing.height()
+    # processing.height()
     # processing.volume()
     # processing.n_floor()
     # processing.gross_floor_area()

@@ -1,10 +1,9 @@
-import json
 import uuid
 
 from config.config import Config
 
 
-class ProjectIdGenerator(Config):
+class ProjectId(Config):
     def __init__(self):
         super().__init__()
 
@@ -21,8 +20,16 @@ class ProjectIdGenerator(Config):
         self.config["project_info"]["project_id"] = project_id
 
         # Save the updated config
-        with open(self.config_path, 'w') as file:
-            json.dump(self.config, file, indent=4)
+        self.save_config()
 
         print(f"Generated unique project ID: {project_id} and saved to config.")
         return project_id
+
+    def run(self):
+        """Run the project ID generation process."""
+        try:
+            self.generate_project_id()
+            print("Project ID generation process completed successfully.")
+        except Exception as e:
+            print(f"Error during project ID generation: {e}")
+            raise

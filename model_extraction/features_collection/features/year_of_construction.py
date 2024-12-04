@@ -1,20 +1,53 @@
-import geopandas as gpd
 import pandas as pd
 
-from config.config import Config
+from model_extraction.features_collection.base_feature import BaseFeature
 
 
-class YearOfConstruction(Config):
+class YearOfConstruction(BaseFeature):
+    """
+    Assigns year of construction to buildings based on census data.
+    """
     def __init__(self):
         super().__init__()
         self.feature_name = 'year_of_construction'
         self.census_id_column = 'census_id'
-        # Load configuration for building path and year_of_construction details
-        self.building_path = self.config.get("building_path")
-        year_config = self.config.get('features', {}).get('year_of_construction', {})
+        year_config = self.config.get('features', {}).get(self.feature_name, {})
         self.census_columns = list(year_config.get("census_built_year", {}).keys())
         self.year_mapping = year_config.get("census_built_year", {})
         self.median_years = self._calculate_median_years()
+
+    def run(self, gdf):
+        print(f"Starting the process to assign {self.feature_name}...")  # Essential print 1
+
+        # Initialize the feature column if it does not exist
+        gdf = self.initialize_feature_column(gdf, self.feature_name)
+
+        # Validate required columns using BaseFeature method
+        if not self._validate_required_columns_exist(gdf, [self.census_id_column]):
+            return gdf
+
+        # Retrieve year_of_construction if it is null, some rows are null, or data type is wrong
+        gdf = self.retrieve_data_from_sources(self.feature_name, gdf)
+
+        # Validate the data type of the feature in the DataFrame
+        gdf = self.validate_data(gdf, self.feature_name)
+
+        # Convert census-related columns to numeric
+        self._convert_to_numeric(gdf)
+
+        # Check if data returned is None or null
+        if gdf[self.feature_name].isnull().all():
+            gdf = self._assign_years(gdf)
+        else:
+            # Check for null or invalid values in the year_of_construction column
+            invalid_rows = gdf[self.feature_name].isnull() | gdf[self.feature_name].apply(
+                lambda x: not isinstance(x, int))
+
+            # Assign years for invalid rows
+            gdf = self._assign_years(gdf, invalid_rows)
+
+        print("Year of construction assignment completed.")  # Essential print 2
+        return gdf
 
     def _calculate_median_years(self):
         """
@@ -28,14 +61,6 @@ class YearOfConstruction(Config):
             except ValueError:
                 median_years[key] = None  # Assign None for invalid or unexpected formats
         return median_years
-
-    def _validate_columns(self, gdf, required_columns):
-        """
-        Validate that the required columns exist in the GeoDataFrame.
-        """
-        missing_columns = [col for col in required_columns if col not in gdf.columns]
-        if missing_columns:
-            raise ValueError(f"Missing required columns: {', '.join(missing_columns)}")
 
     def _convert_to_numeric(self, gdf):
         """
@@ -65,7 +90,7 @@ class YearOfConstruction(Config):
 
         return int(round(weighted_year))  # Ensure the result is an integer
 
-    def _assign_years(self, gdf):
+    def _assign_years(self, gdf, invalid_rows=None):
         """
         Assign year_of_construction to buildings by grouping by census_id.
         """
@@ -74,36 +99,9 @@ class YearOfConstruction(Config):
         for census_id, group in gdf.groupby(self.census_id_column):
             year_mapping[census_id] = self._calculate_group_year(group)
 
-        gdf[self.feature_name] = gdf[self.census_id_column].map(year_mapping).fillna(1900).astype(int)
+        if invalid_rows is None:
+            gdf[self.feature_name] = gdf[self.census_id_column].map(year_mapping).fillna(1900).astype(int)
+        else:
+            gdf.loc[invalid_rows, self.feature_name] = gdf.loc[invalid_rows, self.census_id_column].map(
+                year_mapping).fillna(1900).astype(int)
         return gdf
-
-    def _save_to_file(self, gdf):
-        """
-        Save the updated GeoDataFrame to the configured GeoJSON file.
-        """
-        gdf.to_file(self.building_path, driver='GeoJSON')
-        print(f"Updated building data saved to {self.building_path}.")
-
-    def run(self):
-        """
-        Execute the full process to assign construction years.
-        """
-        print(f"Starting the process to assign {self.feature_name}...")
-
-        # Load the building data
-        buildings_gdf = gpd.read_file(self.building_path)
-
-        # Validate required columns
-        self._validate_columns(buildings_gdf, required_columns=[self.census_id_column])
-
-        # Convert census-related columns to numeric
-        self._convert_to_numeric(buildings_gdf)
-
-        # Assign construction years
-        updated_gdf = self._assign_years(buildings_gdf)
-
-        # Save the updated GeoDataFrame
-        self._save_to_file(updated_gdf)
-
-        print("Year of construction assignment completed.")
-        return updated_gdf

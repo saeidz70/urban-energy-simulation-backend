@@ -1,68 +1,64 @@
-import geopandas as gpd
+import pandas as pd
 
-from config.config import Config
-from model_extraction.data_manager.utility import UtilityProcess
+from model_extraction.features_collection.base_feature import BaseFeature
 
 
-class FloorProcess(Config):
+class NumberOfFloors(BaseFeature):
+    """
+    Assigns number of floors to buildings.
+    """
     def __init__(self):
         super().__init__()
         self.feature_name = 'n_floor'
         self.height_column = 'height'
-        self.building_file = self.config['building_path']
-        self.n_floor_config = self.config.get("features", {}).get(self.feature_name, {})
-        self.avg_floor_height = self.n_floor_config.get("avg_floor_height", 3.3)
-        self.min_n_floor = self.n_floor_config.get("min", 1)
-        self.max_n_floor = self.n_floor_config.get("max", 100)
-        self.data_type = self.n_floor_config.get("type", "int")
-        self.utility = UtilityProcess()
+        n_floor_config = self.config.get('features', {}).get(self.feature_name, {})
+        self.avg_floor_height = n_floor_config.get("avg_floor_height", 3.3)
+        self.min_n_floor = n_floor_config.get("min", 1)
+        self.max_n_floor = n_floor_config.get("max", 100)
+        self.data_type = n_floor_config.get("type", "int")
 
-    def process_floors(self):
-        """Main method to process the number of floors."""
-        buildings_gdf = self._load_building_data()
+    def run(self, gdf):
+        print(f"Starting the process to assign {self.feature_name}...")  # Essential print 1
 
-        buildings_gdf = self._initialize_column(buildings_gdf, self.feature_name)
+        # Initialize the feature column if it does not exist
+        gdf = self.initialize_feature_column(gdf, self.feature_name)
 
-        buildings_gdf = self._retrieve_floors_from_utility(buildings_gdf)
+        # Validate required columns using BaseFeature method
+        if not self._validate_required_columns_exist(gdf, [self.height_column]):
+            return gdf
 
-        buildings_gdf = self._calculate_missing_floors(buildings_gdf)
+        # Retrieve n_floor data if it is null, some rows are null, or data type is wrong
+        gdf = self.retrieve_data_from_sources(self.feature_name, gdf)
 
-        buildings_gdf = self._validate_floor_values(buildings_gdf)
+        # Check if data returned is None or has missing values
+        if gdf[self.feature_name].isnull().all():
+            gdf = self._get_osm_data(self.feature_name, gdf)
+            if gdf[self.feature_name].isnull().all():
+                gdf = self._calculate_missing_floors(gdf)
+        else:
+            # Check for null or invalid values in the n_floor column
+            invalid_rows = gdf[self.feature_name].isnull() | gdf[self.feature_name].apply(
+                lambda x: not isinstance(x, int))
 
-        self._save_building_data(buildings_gdf)
-        return buildings_gdf
+            # Calculate missing floors for invalid rows
+            gdf = self._calculate_missing_floors(gdf, invalid_rows)
 
-    def _load_building_data(self):
-        """Load building data from the configured file path."""
-        print(f"Loading building data from {self.building_file}")
-        return gpd.read_file(self.building_file)
+        # Validate floor values
+        gdf = self._validate_floor_values(gdf)
 
-    def _initialize_column(self, gdf, column_name):
-        """Ensure a specified column exists in the GeoDataFrame."""
-        if column_name not in gdf.columns:
-            print(f"Initializing column '{column_name}' with None.")
-            gdf[column_name] = None
+        print("Number of floors assignment completed.")  # Essential print 2
         return gdf
 
-    def _retrieve_floors_from_utility(self, gdf):
-        """Retrieve and update 'n_floor' data using the UtilityProcess."""
-        n_floor_gdf = self.utility.process_feature(self.feature_name, gdf)
-        if n_floor_gdf is not None and not n_floor_gdf.empty:
-            print(f"Merging retrieved '{self.feature_name}' data into the building GeoDataFrame.")
-            gdf = gdf.merge(
-                n_floor_gdf[['geometry', self.feature_name]],
-                on='geometry',
-                how='left',
-                suffixes=('', '_updated')
-            )
-            gdf[self.feature_name] = gdf[self.feature_name].fillna(gdf[f"{self.feature_name}_updated"])
-            gdf.drop(columns=[f"{self.feature_name}_updated"], inplace=True)
-        return gdf
-
-    def _calculate_missing_floors(self, gdf):
-        """Calculate missing 'n_floor' values using the 'height' column."""
+    def _calculate_missing_floors(self, gdf, invalid_rows=None):
+        """
+        Calculate missing n_floor values using the height column.
+        """
         if self.height_column in gdf.columns:
-            missing_floors = gdf[self.feature_name].isnull()
+            if invalid_rows is None:
+                missing_floors = gdf[self.feature_name].isnull()
+            else:
+                missing_floors = invalid_rows
+
             if missing_floors.any():
                 print(f"Calculating missing {self.feature_name} values from {self.height_column}.")
                 gdf.loc[missing_floors, self.feature_name] = (
@@ -71,15 +67,18 @@ class FloorProcess(Config):
         return gdf
 
     def _validate_floor_values(self, gdf):
-        """Ensure 'n_floor' values are within the configured limits."""
+        """
+        Ensure n_floor values are within the configured limits.
+        """
         print(f"Validating {self.feature_name} values between {self.min_n_floor} and {self.max_n_floor}.")
-        gdf[self.feature_name] = gdf[self.feature_name].clip(self.min_n_floor, self.max_n_floor)
-        gdf[self.feature_name] = gdf[self.feature_name].astype(self.data_type)
-        return gdf
 
-    def _save_building_data(self, gdf):
-        """Save the updated GeoDataFrame to the configured file path."""
-        print(f"Saving updated building data to {self.building_file}.")
-        columns = [self.feature_name] + [col for col in gdf.columns if col != self.feature_name]
-        gdf = gdf[columns]
-        gdf.to_file(self.building_file, driver='GeoJSON')
+        # Ensure the column is numeric, coercing invalid values to NaN
+        gdf[self.feature_name] = pd.to_numeric(gdf[self.feature_name], errors="coerce")
+
+        # Replace NaN with the minimum floor value to avoid errors
+        gdf[self.feature_name] = gdf[self.feature_name].fillna(self.min_n_floor)
+
+        # Clip values within the range and ensure correct data type
+        gdf[self.feature_name] = gdf[self.feature_name].clip(self.min_n_floor, self.max_n_floor).astype(self.data_type)
+
+        return gdf

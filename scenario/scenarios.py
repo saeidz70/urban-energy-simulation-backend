@@ -1,20 +1,16 @@
 from model_extraction.features_collection.feature_factory import FeatureFactory
 
-
 class BaseScenario(FeatureFactory):
     def __init__(self):
         super().__init__()
+        self.feature_list = None
 
-    def run_scenario(self):
-        """Execute each feature method based on the scenario's feature list."""
+    def run_scenario(self, gdf):
+        """Execute each feature method based on the scenario's feature list and return the modified GeoDataFrame."""
         for feature_name in self.feature_list:
-            feature_method = getattr(self, feature_name, None)
-            if callable(feature_method):
-                print(f"Executing feature: {feature_name}")
-                feature_method()
-            else:
-                print(f"Warning: Method for '{feature_name}' not found in FeatureFactory.")
-
+            print(f"Executing feature: {feature_name}")
+            gdf = self.run_feature(feature_name, gdf)
+        return gdf
 
 # Scenario classes inheriting from BaseScenario
 class BaselineScenario(BaseScenario):

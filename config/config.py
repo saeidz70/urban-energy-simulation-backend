@@ -14,3 +14,8 @@ class Config:
                 self.config = json.load(f)
         except Exception as e:
             print(f"Failed to reload configuration: {str(e)}")
+
+    def save_config(self):
+        # Save the updated config
+        with open(self.config_path, 'w') as file:
+            json.dump(self.config, file, indent=4)
