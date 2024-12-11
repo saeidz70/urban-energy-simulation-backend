@@ -7,42 +7,45 @@ class TabulaID(BaseFeature):
         self.feature_name = "tabula_id"
         self.year_of_construction_column = "year_of_construction"
         self.tabula_type_column = "tabula_type"
-        self.feature_config = self.config.get("features", {}).get(self.feature_name, {})
-        self.tabula_mapping = self.feature_config.get("tabula_mapping", {})
+        # Dynamically retrieve and set feature configuration
+        self.get_feature_config(self.feature_name)
 
     def run(self, gdf):
-        print("Starting Tabula ID assignment...")  # Essential print 1
+        """
+        Main method to assign Tabula IDs to the GeoDataFrame.
+        """
+        print("Starting Tabula ID assignment...")
 
-        # Initialize the feature column if it does not exist
-        gdf = self.initialize_feature_column(gdf, self.feature_name)
+        # Process feature
+        gdf = self.process_feature(gdf, self.feature_name)
 
-        # Validate that the required columns exist in the GeoDataFrame
-        if not self._validate_required_columns_exist(gdf, [self.year_of_construction_column, self.tabula_type_column]):
-            return gdf
+        # Handle invalid or missing Tabula IDs
+        invalid_rows = self.check_invalid_rows(gdf, self.feature_name)
+        if not invalid_rows.empty:
+            gdf = self.assign_tabula_ids(gdf, invalid_rows.index)
 
-        # Retrieve tabula_id if it is null, some rows are null, or data type is wrong
-        gdf = self.retrieve_data_from_sources(self.feature_name, gdf)
-
-        # Validate the data type of the feature in the DataFrame
         gdf = self.validate_data(gdf, self.feature_name)
 
-        # Check if data returned is None or null
-        if gdf[self.feature_name].isnull().all():
-            gdf = self.assign_tabula_ids(gdf)
+        print("Tabula ID assignment completed.")
+        return gdf
 
-        else:
-            # Check for null or invalid values in the tabula_id column
-            invalid_rows = gdf[self.feature_name].isnull() | gdf[self.feature_name].apply(
-                lambda x: not isinstance(x, str))
-
-            # Assign Tabula IDs for invalid rows
-            gdf = self.assign_tabula_ids(gdf, invalid_rows)
-
-        print("Tabula ID assignment completed.")  # Essential print 2
+    def assign_tabula_ids(self, gdf, rows):
+        """
+        Assign Tabula IDs to specific rows based on year and type.
+        """
+        gdf.loc[rows, self.feature_name] = gdf.loc[rows].apply(
+            lambda row: self.determine_tabula_id(
+                row.get(self.year_of_construction_column),
+                row.get(self.tabula_type_column)
+            ),
+            axis=1
+        )
         return gdf
 
     def determine_tabula_id(self, year, tabula_type):
-        """Determine the Tabula ID based on year and tabula type."""
+        """
+        Determine the Tabula ID based on year and tabula type.
+        """
         try:
             year = int(year)
             for period, mapping in self.tabula_mapping.items():
@@ -54,23 +57,3 @@ class TabulaID(BaseFeature):
                         return mapping.get(tabula_type)
         except (ValueError, TypeError):
             return None
-
-    def assign_tabula_ids(self, gdf, invalid_rows=None):
-        """Assign Tabula IDs to buildings based on year and type."""
-        if invalid_rows is None:
-            gdf[self.feature_name] = gdf.apply(
-                lambda row: self.determine_tabula_id(
-                    row[self.year_of_construction_column],
-                    row[self.tabula_type_column]
-                ),
-                axis=1
-            )
-        else:
-            gdf.loc[invalid_rows, self.feature_name] = gdf.loc[invalid_rows].apply(
-                lambda row: self.determine_tabula_id(
-                    row[self.year_of_construction_column],
-                    row[self.tabula_type_column]
-                ),
-                axis=1
-            )
-        return gdf

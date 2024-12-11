@@ -27,7 +27,7 @@ class UtilityProcess(Config):
         self.load_config()
         scenario_list = self.config.get("project_info", {}).get("scenarioList", [])
 
-        if "baseline" not in scenario_list:
+        if "baseline" not in scenario_list and "update" not in scenario_list:
 
             print(f"Attempting to retrieve data for feature: '{feature}'")
             # Retrieve feature data from various sources

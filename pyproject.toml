@@ -6,18 +6,16 @@ authors = ["Saeid Zolfaghari <saeidz70@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "3.12"
-geopandas = "^1.0.1"
-pandas = "^2.2.3"
-numpy = "^2.1.3"
-requests = "^2.32.3"
-osmnx = "^1.9.4"
-shapely = "^2.0.6"
-geojson = "^3.1.0"
-djangorestframework = "3.15.2"
-PyKrige = "^1.7.2"
-rasterio = "^1.4.2"
+python = "^3.12"
+CherryPy = "18.10.0"
+geopandas = "0.14.4"
+numpy = "1.26.4"
+osmnx = "1.9.4"
+pandas = "2.2.2"
+PyKrige = "1.7.2"
+requests = "2.32.3"
 rioxarray = "0.18.0"
+shapely = "2.0.6"
 
 [build-system]
 requires = ["poetry-core"]

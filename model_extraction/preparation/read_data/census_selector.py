@@ -10,18 +10,18 @@ class CensusSelector(Config):
         self.census_path = self.config['census_path']
         self.polygon_file = self.config['polygon_from_building']
         self.output_path = self.config['db_census_sections']
-        self.load_initial_data()
 
-    def load_initial_data(self):
+    def load_initial_data(self, polygon_gdf):
         # Load Census GeoDataFrame
         self.census_gdf = gpd.read_file(self.census_path)
         # Load and set Polygon GeoDataFrame
-        polygon_from_building = gpd.read_file(self.polygon_file)
+        polygon_from_building = polygon_gdf
         polygon = polygon_from_building.geometry[0]
         self.polygon_gdf = gpd.GeoDataFrame(index=[0], crs=polygon_from_building.crs, geometry=[polygon])
         print("Initial data loaded and polygon set successfully.")
 
-    def select_census_sections(self):
+    def select_census_sections(self, polygon_gdf):
+        self.load_initial_data(polygon_gdf)
         if self.census_gdf.empty or self.polygon_gdf.empty:
             raise ValueError("Census data or polygon has not been loaded.")
 
@@ -37,6 +37,7 @@ class CensusSelector(Config):
             print("Warning: No census sections intersect the given polygon.")
         else:
             print("Census sections selected successfully.")
+            return self.selected_census_gdf
 
     def save_selected_sections(self):
         if self.selected_census_gdf is None or self.selected_census_gdf.empty:
@@ -49,9 +50,10 @@ class CensusSelector(Config):
 
         self.selected_census_gdf.to_file(self.output_path, driver='GeoJSON')
         print(f"Selected census sections successfully saved to {self.output_path}")
+        return self.selected_census_gdf
 
-    def run(self):
-        self.select_census_sections()
+    def run(self, polygon_gdf):
+        self.select_census_sections(polygon_gdf)
         if not self.selected_census_gdf.empty:
             self.save_selected_sections()
-        return self.selected_census_gdf
+            return self.selected_census_gdf

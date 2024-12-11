@@ -13,11 +13,11 @@
     "PROJECTED_CRS": 32632,
     "DEFAULT_CRS": 4326,
     "osm_overpass_url": "http://overpass-api.de/api/interpreter",
-    "database_url": "http://172.25.13.16:8000/api/new_validated_building_scenario/",
+    "database_url": "http://172.25.13.16:8002/api/new_validated_building_scenario/",
     "db_census_url": "http://172.25.13.16:8002/api/census_spatial_post/",
     "db_height_url": "http://172.25.13.16:8001/height/",
     "database_headers": {
-        "Authorization": "Token 351cbb4158554369f5536d6394fe89cbaa74dbdd",
+        "Authorization": "Token 90c6fa0c5d08c5a7a72f2b452757592e1c4b8c9b",
         "Content-Type": "application/json"
     },
     "OSM_tags": {
@@ -103,22 +103,34 @@
     },
     "features": {
         "building_id": {
-            "type": "UUID"
+            "type": "UUID",
+            "required_features": [],
+            "description": "Unique identifier for each building."
         },
         "census_id": {
             "type": "int",
             "census_id_column": "SEZ2011",
+            "required_features": [],
             "description": "Census section identifier."
         },
         "height": {
             "type": "float",
             "min": 5,
             "max": 300,
+            "required_features": [],
             "description": "Building height in meters."
+        },
+        "volume": {
+            "type": "float",
+            "required_features": [
+                "height",
+                "area"
+            ],
+            "description": "Building volume in cubic meters."
         },
         "usage": {
             "type": "str",
-            "allowed_values": [
+            "allowed_usages": [
                 "residential",
                 "non residential",
                 "apartments",
@@ -130,12 +142,16 @@
                 "E3": "residential",
                 "E4": "non residential"
             },
+            "required_features": [
+                "census_id"
+            ],
             "description": "Building usage type."
         },
         "area": {
             "type": "float",
             "min": 50,
             "max": 100000,
+            "required_features": [],
             "description": "Building area in square meters."
         },
         "n_floor": {
@@ -143,18 +159,32 @@
             "min": 1,
             "max": 100,
             "avg_floor_height": 3.2,
+            "required_features": [
+                "height"
+            ],
             "description": "Number of floors in the building."
         },
         "gross_floor_area": {
             "type": "float",
+            "required_features": [
+                "area",
+                "n_floor"
+            ],
             "description": "Gross floor area in square meters."
         },
         "net_leased_area": {
             "type": "float",
+            "required_features": [
+                "gross_floor_area"
+            ],
             "description": "Net leased area in square meters."
         },
         "tot_area_per_cens_id": {
             "type": "float",
+            "required_features": [
+                "census_id",
+                "area"
+            ],
             "description": "Total area per census ID."
         },
         "year_of_construction": {
@@ -172,11 +202,18 @@
                 "E15": "2001-2005",
                 "E16": "2005-2022"
             },
+            "required_features": [
+                "census_id"
+            ],
             "description": "Year when the building was constructed."
         },
         "n_family": {
             "type": "int",
-            "census_n_family": "PF1",
+            "census_family_column": "PF1",
+            "required_features": [
+                "census_id",
+                "volume"
+            ],
             "description": "Number of families in the building."
         },
         "construction_type": {
@@ -191,10 +228,14 @@
                 "1946-1990": "med",
                 "1991-2022": "high"
             },
+            "required_features": [
+                "year_of_construction"
+            ],
             "description": "Type of construction."
         },
         "w2w": {
             "type": "float",
+            "required_features": [],
             "description": "Wall-to-wall ratio."
         },
         "cooling": {
@@ -203,6 +244,7 @@
                 true,
                 false
             ],
+            "required_features": [],
             "description": "Indicates if the building has cooling."
         },
         "heating": {
@@ -211,24 +253,27 @@
                 true,
                 false
             ],
+            "required_features": [],
             "description": "Indicates if the building has heating."
         },
         "hvac_type": {
             "type": "str",
-            "values": [
+            "hvac_types": [
                 "GB",
                 "HP"
             ],
+            "required_features": [],
             "description": "HVAC system type."
         },
         "tabula_type": {
             "type": "str",
-            "values": [
+            "tabula_types": [
                 "SFH",
                 "TH",
                 "MFH",
                 "AB"
             ],
+            "required_features": [],
             "description": "Tabula building type."
         },
         "tabula_id": {
@@ -283,66 +328,45 @@
                     "AB": "IT.MidClim.AB.08.Gen"
                 }
             },
+            "required_features": [
+                "year_of_construction",
+                "tabula_type"
+            ],
             "description": "Tabula ID for building identified by year_of_construction and tabula_type."
         },
         "neighbours_ids": {
-            "type": "list",
+            "type": "str",
             "radius": 100,
+            "required_features": [
+                "building_id"
+            ],
             "description": "List of neighbor IDs in 100m radios."
         },
         "neighbours_surfaces": {
-            "type": "list",
+            "type": "str",
+            "required_features": [
+                "neighbours_ids"
+            ],
             "description": "List of neighbor buildings surfaces in 100m radios."
         },
         "geometry": {
-            "type": "polygon"
+            "type": "polygon",
+            "required_features": [],
+            "description": "Geometry of the building."
         }
     },
     "project_info": {
-        "projectName": "Torino",
+        "projectName": "Cenisia",
         "mapCenter": {
             "latitude": 45.43676673688583,
             "longitude": 7.606706647981852,
             "zoom": 8
         },
-        "polygonArray": [
-            [
-                7.655926633390336,
-                45.067195959891066
-            ],
-            [
-                7.656377244520445,
-                45.06916608375739
-            ],
-            [
-                7.655068326475843,
-                45.06956010038213
-            ],
-            [
-                7.653802323776968,
-                45.06954494594678
-            ],
-            [
-                7.65262215176954,
-                45.067756694366004
-            ],
-            [
-                7.6543173079256634,
-                45.06686254759557
-            ],
-            [
-                7.655561852951677,
-                45.06639273606023
-            ],
-            [
-                7.655926633390336,
-                45.067195959891066
-            ]
-        ],
+        "polygonArray": [],
         "scenarioList": [
-            "baseline"
+            "update"
         ],
-        "scenario_id": "598ba93b-eb27-43cc-9cb8-0ccfcddc2b5d",
-        "project_id": "c0b510ec-9c73-458c-9c7d-0fb84fe468b6"
+        "scenario_id": "2e1f38c5-66b3-46e5-8681-d71a6c0fb96e",
+        "project_id": "b1c29308-b941-4c60-a166-c04b2db82af5"
     }
 }

@@ -2,29 +2,48 @@ from model_extraction.features_collection.base_feature import BaseFeature
 
 
 class Area(BaseFeature):
+    """
+    Calculates and validates the area feature for buildings.
+    """
     def __init__(self):
         super().__init__()
-        self.feature_name = 'area'
-        self.area_config = self.config.get("features", {}).get(self.feature_name, {})
-        self.min_area = self.area_config.get("min", 50)
-        self.max_area = self.area_config.get("max", 1000000)
-        self.data_type = self.area_config.get("type", "float")
+        self.feature_name = "area"
+        self.get_feature_config(self.feature_name)  # Dynamically retrieve and set feature configuration
 
     def run(self, gdf):
-        # Starting the area calculation
-        print(f"Calculating {self.feature_name} feature started...")
+        """
+        Main method to calculate and validate the area feature.
+        """
+        print(f"Calculating '{self.feature_name}' feature started...")
 
-        # Initialize the feature column
+        # Initialize the feature column if not present
         gdf = self.initialize_feature_column(gdf, self.feature_name)
 
+        # Ensure GeoDataFrame uses the projected CRS for accurate area calculations
         gdf = self.check_crs_with_projected_crs(gdf)
 
-        if gdf[self.feature_name].isnull().any() or not gdf[self.feature_name].dtype == self.data_type:
+        # Calculate areas only for rows with missing values
+        if gdf[self.feature_name].isnull().any():
+            print("Calculating areas for rows with missing values...")
             gdf = self._calculate_areas(gdf)
 
-        gdf = self.filter_data(gdf, self.feature_name, self.min_area, self.max_area, self.data_type)
+        # Validate and filter the feature data
+        gdf = self.validate_data(gdf, self.feature_name)
+
+        gdf = self.filter_data(
+            gdf, self.feature_name, min_value=self.min, max_value=self.max, data_type=self.type
+        )
+
+        print(f"'{self.feature_name}' calculation completed.")
         return gdf
 
     def _calculate_areas(self, gdf):
-        gdf[self.feature_name] = gdf.geometry.area.round(2)
+        """
+        Calculate areas for rows with missing values based on geometry.
+        """
+        # Identify rows with missing values in the area column
+        missing_area_rows = gdf[self.feature_name].isnull()
+
+        # Calculate and assign area only for those rows
+        gdf.loc[missing_area_rows, self.feature_name] = gdf.loc[missing_area_rows].geometry.area.round(2)
         return gdf

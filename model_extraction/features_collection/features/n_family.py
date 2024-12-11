@@ -11,127 +11,106 @@ class NumberOfFamily(BaseFeature):
     def __init__(self):
         super().__init__()
         self.feature_name = "n_family"
-        self.census_id_column = "census_id"
         self.volume_column = "volume"
-        self.n_family_config = self.config['features'].get(self.feature_name, {})
-        self.census_family_column = self.n_family_config.get('census_n_family', 'PF1')
+        self.census_id_column = "census_id"
+
+        self.get_feature_config(self.feature_name)  # Dynamically set configuration for the feature
         self.volume_calculator = Volume()
 
     def run(self, gdf):
-        print(f"Starting the process to assign {self.feature_name}...")
+        """
+        Main method to process and assign number of families data.
+        """
+        print(f"Starting the process to assign '{self.feature_name}'...")
 
-        # Initialize the feature column if it does not exist
-        gdf = self.initialize_feature_column(gdf, self.feature_name)
+        # Step 1: Initialize and validate the feature
+        gdf = self.process_feature(gdf, self.feature_name)
 
-        # Validate required columns using BaseFeature method
-        if not self._validate_required_columns_exist(gdf, [self.census_id_column]):
-            return gdf
+        # Step 2: Ensure required columns are present
+        gdf = self._ensure_required_columns(gdf)
 
-        # Retrieve family data if it is null, some rows are null, or data type is wrong
-        gdf = self.retrieve_data_from_sources(self.feature_name, gdf)
-
-        # Validate the data type of the feature in the DataFrame
-        gdf = self.validate_data(gdf, self.feature_name)
-
-        # Ensure the census family column exists and is numeric
-        gdf = self._ensure_family_column(gdf)
-
-        # Ensure the volume column is present by calculating it if needed
-        gdf = self._ensure_volume_column(gdf)
-
-        # Check if data returned is None or has missing values
-        if gdf[self.feature_name].isnull().all():
+        # Step 3: Handle missing or invalid family values
+        invalid_rows = self.check_invalid_rows(gdf, self.feature_name)
+        if not invalid_rows.empty:
+            print(f"Calculating family distribution for {len(invalid_rows)} rows...")
             gdf = self._calculate_family_distribution(gdf)
-        else:
-            # Check for null or invalid values in the family column
-            invalid_rows = gdf[self.feature_name].isnull() | gdf[self.feature_name].apply(
-                lambda x: not isinstance(x, (int, float)))
 
-            # Calculate missing families for invalid rows
-            gdf = self._calculate_family_distribution(gdf, invalid_rows)
+        # Ensure no null values remain and convert to int
+        gdf[self.feature_name] = gdf[self.feature_name].fillna(0).astype(int)
 
-        # Validate and filter family values
-        gdf = self._validate_and_filter_families(gdf)
+        # Step 4: Final validation and filtering
+        gdf = self.validate_data(gdf, self.feature_name)
 
         print("Family assignment completed.")
         return gdf
 
-    def _ensure_family_column(self, gdf):
+    def _ensure_required_columns(self, gdf):
         """
-        Ensure the census family column exists and is numeric.
+        Ensure the required columns ('census_family_column' and 'volume_column') are present and valid.
         """
+        # Ensure the census family column is numeric
         if self.census_family_column not in gdf.columns:
-            print(f"Initializing missing census family column '{self.census_family_column}' with 0.")
+            print(f"Initializing missing column '{self.census_family_column}' with 0.")
             gdf[self.census_family_column] = 0
         else:
             print(f"Converting column '{self.census_family_column}' to numeric.")
             gdf[self.census_family_column] = pd.to_numeric(
                 gdf[self.census_family_column], errors='coerce'
-            ).fillna(0)
-        return gdf
+            ).fillna(0).astype(int)
 
-    def _ensure_volume_column(self, gdf):
-        """
-        Ensure the volume column is present by calculating it if needed.
-        """
+        # Ensure the volume column is present
         if self.volume_column not in gdf.columns:
-            print(f"Volume column '{self.volume_column}' missing. Calculating building volumes.")
+            print(f"Column '{self.volume_column}' missing. Calculating building volumes.")
             gdf = self.volume_calculator.run(gdf)
+
+        # Fill missing census_id values with a default placeholder (-1)
+        if self.census_id_column not in gdf.columns:
+            print(f"Initializing missing column '{self.census_id_column}' with default value -1.")
+            gdf[self.census_id_column] = -1
+        gdf[self.census_id_column] = gdf[self.census_id_column].fillna(-1).astype(int)
+
         return gdf
 
-    def _calculate_family_distribution(self, gdf, invalid_rows=None):
+    def _calculate_family_distribution(self, gdf):
         """
         Distribute families among buildings proportionally based on their volume.
         """
-        if invalid_rows is None:
-            invalid_rows = gdf[self.feature_name].isnull()
+        # Aggregate total volume and families for each census section
+        census_aggregated = gdf.groupby(self.census_id_column).agg(
+            total_volume=(self.volume_column, 'sum'),
+            total_families=(self.census_family_column, 'first')  # Use 'first' since PF1 is consistent for each census
+        )
 
-        if invalid_rows.any():
-            print("Calculating family distribution.")
-            buildings = gdf.copy()
+        # Ensure valid entries (total volume > 0 and families > 0)
+        census_aggregated = census_aggregated[census_aggregated["total_volume"] > 0]
 
-            # Aggregate total volume and families for each census section
-            census_aggregated = buildings.groupby(self.census_id_column).agg(
-                total_volume=(self.volume_column, 'sum'),
-                total_families=(self.census_family_column, 'first')
-                # Use 'first' since PF1 is same for all rows in census
-            )
-
-            # Ensure valid entries (total volume > 0 and families > 0)
-            census_aggregated = census_aggregated[census_aggregated["total_volume"] > 0]
-
-            # Distribute families proportionally based on volume
-            def distribute_families(row):
-                census_id = row[self.census_id_column]
-                if census_id in census_aggregated.index:
-                    total_volume = census_aggregated.loc[census_id, "total_volume"]
-                    total_families = census_aggregated.loc[census_id, "total_families"]
-                    proportional_families = (row[self.volume_column] / total_volume) * total_families
-                    return min(int(proportional_families), total_families)
-                return 0
-
-            buildings[self.feature_name] = buildings.apply(distribute_families, axis=1)
-
-            # Ensure sum does not exceed PF1
-            def limit_family_sum(census_id, group):
+        # Function to distribute families proportionally
+        def distribute_families(row):
+            census_id = row[self.census_id_column]
+            if census_id in census_aggregated.index:
+                total_volume = census_aggregated.loc[census_id, "total_volume"]
                 total_families = census_aggregated.loc[census_id, "total_families"]
-                while group[self.feature_name].sum() > total_families:
-                    # Reduce families from the building with the largest n_family
-                    max_family_idx = group[self.feature_name].idxmax()
-                    group.loc[max_family_idx, self.feature_name] -= 1
-                return group
+                if total_volume > 0:  # Prevent division by zero
+                    proportional_families = (row[self.volume_column] / total_volume) * total_families
+                    return max(0, min(int(proportional_families), total_families))
+            return 0  # Assign 0 if no census data or volume is missing
 
-            buildings = buildings.groupby(self.census_id_column, group_keys=False).apply(
-                lambda group: limit_family_sum(group.name, group)
-            ).reset_index(drop=True)
+        # Apply proportional distribution
+        gdf[self.feature_name] = gdf.apply(distribute_families, axis=1)
 
-            gdf.loc[invalid_rows, self.feature_name] = buildings.loc[invalid_rows, self.feature_name]
-        return gdf
+        # Ensure sum does not exceed PF1
+        def limit_family_sum(census_id, group):
+            total_families = census_aggregated.loc[census_id, "total_families"]
+            while group[self.feature_name].sum() > total_families:
+                # Reduce families from the building with the largest n_family
+                max_family_idx = group[self.feature_name].idxmax()
+                group.loc[max_family_idx, self.feature_name] -= 1
+            return group
 
-    def _validate_and_filter_families(self, gdf):
-        """
-        Ensure family values are within the allowed limits.
-        """
-        print(f"Validating and filtering {self.feature_name} values.")
-        gdf[self.feature_name] = gdf[self.feature_name].apply(lambda x: max(0, int(x)) if pd.notnull(x) else 0)
+        # Apply adjustment to ensure constraints are met
+        gdf = (
+            gdf.groupby(self.census_id_column, group_keys=False, as_index=False)
+            .apply(lambda group: limit_family_sum(group.name, group.drop(columns=[self.census_id_column])))
+        )
+
         return gdf

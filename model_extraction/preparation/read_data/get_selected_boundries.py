@@ -1,7 +1,4 @@
-import geojson
 import geopandas as gpd
-from matplotlib import pyplot as plt
-from shapely.geometry import shape, Polygon
 
 from config.config import Config
 
@@ -9,50 +6,40 @@ from config.config import Config
 class GetSelectedBoundaries(Config):
     def __init__(self):
         super().__init__()
-        self.input_file_path = self.config['db_census_sections']
         self.output_file_path = self.config['selected_boundaries']
-        self.geo_data = self.load_geojson()
         self.polygons = []
         self.combined_polygon = None
 
-    def load_geojson(self):
-        with open(self.input_file_path) as f:
-            geojson_data = geojson.load(f)
-        return geojson_data
+    def _extract_polygons(self, selected_census_gdf):
+        """Extract polygons from the selected census GeoDataFrame."""
+        if selected_census_gdf.empty:
+            raise ValueError("Selected census GeoDataFrame is empty.")
 
-    def extract_polygons(self, geojson_data):
-        for feature in geojson_data['features']:
-            geom = feature['geometry']
-            if geom['type'] == 'Polygon':
-                self.polygons.append(shape(geom))
-            elif geom['type'] == 'MultiPolygon':
-                for poly in geom['coordinates']:
-                    self.polygons.append(Polygon(poly[0]))
+        for geom in selected_census_gdf.geometry:
+            if geom.geom_type == 'Polygon':
+                self.polygons.append(geom)
+            elif geom.geom_type == 'MultiPolygon':
+                self.polygons.extend(geom.geoms)
 
-    def combine_polygons(self):
+    def _combine_polygons(self):
+        """Combine all extracted polygons into a single polygon."""
+        if not self.polygons:
+            raise ValueError("No polygons to combine.")
         self.combined_polygon = gpd.GeoSeries(self.polygons).unary_union
 
-    def plot_boundary(self):
+    def _save_boundary(self):
+        """Save the combined polygon boundary to the output file."""
         if self.combined_polygon is None:
-            print("No combined polygon to plot. Please run combine_polygons() first.")
-            return
+            raise ValueError("No combined polygon to save. Please run _combine_polygons() first.")
 
-        fig, ax = plt.subplots()
-        gpd.GeoSeries(self.combined_polygon).plot(ax=ax, color='blue', edgecolor='black')
-        plt.title("Polygon Boundary of the GeoJSON Area")
-        plt.show()
-
-    def save_boundary(self):
-        if self.combined_polygon is None:
-            print("No combined polygon to save. Please run combine_polygons() first.")
-            return
-
-        combined_gdf = gpd.GeoDataFrame(geometry=[self.combined_polygon])
+        combined_gdf = gpd.GeoDataFrame(geometry=[self.combined_polygon], crs="EPSG:4326")
         combined_gdf.to_file(self.output_file_path, driver="GeoJSON")
         print(f"Polygon boundary extracted and saved to {self.output_file_path}.")
+        return combined_gdf
 
-    def process_boundaries(self):
-        self.extract_polygons(self.geo_data)
-        self.combine_polygons()
-        # self.plot_boundary()
-        self.save_boundary()
+    def run(self, selected_census_gdf):
+        """Run the process to extract, combine, and save polygon boundaries."""
+        self._extract_polygons(selected_census_gdf)
+        self._combine_polygons()
+        combined_gdf = self._save_boundary()
+        return combined_gdf

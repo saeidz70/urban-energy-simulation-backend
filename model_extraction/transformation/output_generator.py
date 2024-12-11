@@ -74,6 +74,10 @@ class OutputFileGenerator(Config):
             if 'id' in filtered_gdf.columns:
                 filtered_gdf = filtered_gdf.drop(columns='id')
 
+            # Count the number of buildings being sent to the database
+            num_buildings = len(filtered_gdf)
+            print(f"Number of buildings being sent to the database: {num_buildings}")
+
             # Convert to GeoJSON structure without 'id' using drop_id=True
             json_result = json.loads(filtered_gdf.to_json(drop_id=True))
 

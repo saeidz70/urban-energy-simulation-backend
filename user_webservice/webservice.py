@@ -54,7 +54,7 @@ class PolygonServer(BaseServer):
             return {"status_code": 400, "message": "Invalid or missing JSON data"}
 
         if 'polygonArray' in json_body:
-            self.helper.process_data('polygonArray', json_body)
+            self.helper.process_polygon_array(json_body)
             self.load_config()
             project_id = self.config["project_info"]["project_id"]
             project_name = self.config["project_info"]["projectName"]
@@ -85,7 +85,7 @@ class BuildingServer(BaseServer):
 
         if 'buildingGeometry' in json_body:
             print("Processing buildingGeometry data...")
-            self.helper.process_data('buildingGeometry', json_body)
+            self.helper.process_building_geometry(json_body)
             self.load_config()
             project_id = self.config["project_info"]["project_id"]
             project_name = self.config["project_info"]["projectName"]
@@ -101,6 +101,37 @@ class BuildingServer(BaseServer):
     def GET(self):
         return "GET request received on BuildingServer"
 
+
+class UpdateBuildingServer(BaseServer):
+    @cherrypy.tools.json_out()
+    @profile('update_building_profile.txt')
+    def PUT(self):
+        try:
+            body = cherrypy.request.body.read().decode('utf-8')
+            json_body = json.loads(body)
+            print("Received JSON data for buildingGeometry:", json_body)
+        except json.JSONDecodeError:
+            response.status = 400
+            return {"status_code": 400, "message": "Invalid or missing JSON data"}
+
+        if 'buildingGeometry' in json_body:
+            print("Processing buildingGeometry data...")
+            self.helper.update_buildings_gdf(json_body)
+            self.load_config()
+            project_id = self.config["project_info"]["project_id"]
+            project_name = self.config["project_info"]["projectName"]
+
+            message = {"status_code": 200, "message": "buildingGeometry Data processed successfully",
+                       "project_name": project_name, "project_id": project_id}
+
+            print(message)
+            return message
+        else:
+            raise cherrypy.HTTPError(400, 'No buildingGeometry provided in the request.')
+
+    def GET(self):
+        return "GET request received on UpdateBuildingServer"
+
 # CORS setup function
 def CORS():
     cherrypy.response.headers["Access-Control-Allow-Origin"] = "*"
@@ -115,14 +146,15 @@ if __name__ == '__main__':
         }
     }
 
-    # cherrypy.server.socket_host = '127.0.0.1'
-    cherrypy.server.socket_host = '172.25.12.28'
+    cherrypy.server.socket_host = '127.0.0.1'
+    # cherrypy.server.socket_host = '172.25.12.28'
     cherrypy.config.update({'server.socket_port': 8080})
     cherrypy.tools.CORS = cherrypy.Tool('before_handler', CORS)
 
     # Mount each endpoint on a specific path
     cherrypy.tree.mount(PolygonServer(), '/polygonArray', config)
     cherrypy.tree.mount(BuildingServer(), '/buildingGeometry', config)
+    cherrypy.tree.mount(UpdateBuildingServer(), '/updateBuildings', config)
 
     cherrypy.engine.start()
     cherrypy.engine.block()

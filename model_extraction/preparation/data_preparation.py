@@ -1,3 +1,5 @@
+import geopandas as gpd
+
 from config.config import Config
 from model_extraction.preparation.data_cleaning.clean_null import CleanGeoData
 from model_extraction.preparation.read_data.building_extractor import BuildingExtractor
@@ -11,41 +13,35 @@ class PrepMain(Config):
     def __init__(self):
         super().__init__()
 
-    def fetch_census_data(self):
-        census_fetcher = DbCensusFetcher()
+    def fetch_census_data(self, polygon_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         print("Fetching census data")
-        census_fetcher.run()
+        return DbCensusFetcher().run(polygon_gdf)
 
-    def select_census_sections(self):
-        census_selector = CensusSelector()
+    def select_census_sections(self, polygon_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         print("Selecting census sections")
-        census_selector.run()
+        return CensusSelector().run(polygon_gdf)
 
-    def getBoundaries(self):
-        extractor = GetSelectedBoundaries()
+    def get_boundaries(self, selected_census_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         print("Processing boundaries")
-        extractor.process_boundaries()
+        return GetSelectedBoundaries().run(selected_census_gdf)
 
-    def building_extraction(self):
-        building_extractor = BuildingExtractor()
+    def extract_buildings(self, boundaries: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         print("Extracting buildings")
-        building_extractor.extract_and_save_buildings()
+        return BuildingExtractor().run(boundaries)
 
-    def data_integration(self):
-        integrator = DataIntegration()
+    def integrate_data(self, buildings_gdf: gpd.GeoDataFrame,
+                       selected_census_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         print("Integrating data")
-        integrator.integrate_buildings()
+        return DataIntegration().run(buildings_gdf, selected_census_gdf)
 
-    def clean_data(self):
-        clean_data = CleanGeoData()
+    def clean_data(self, integrated_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         print("Cleaning data")
-        clean_data.clean_data()
+        return CleanGeoData().run(integrated_gdf)
 
-
-    def run_all_preparations(self):
-        self.fetch_census_data()
-        # self.select_census_sections()
-        self.getBoundaries()
-        self.building_extraction()
-        self.data_integration()
-        self.clean_data()
+    def run(self, polygon_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+        #  selected_census_gdf = self.fetch_census_data(polygon_gdf)
+        selected_census_gdf = self.select_census_sections(polygon_gdf)
+        boundaries = self.get_boundaries(selected_census_gdf)
+        buildings_gdf = self.extract_buildings(boundaries)
+        integrated_gdf = self.integrate_data(buildings_gdf, selected_census_gdf)
+        return self.clean_data(integrated_gdf)

@@ -1,51 +1,50 @@
 from model_extraction.features_collection.base_feature import BaseFeature
 
-
 class ConstructionType(BaseFeature):
     def __init__(self):
         super().__init__()
-        self.feature_name = 'construction_type'
-        self.year_of_construction_column = 'year_of_construction'
-        self.construction_config = self.config.get('features', {}).get(self.feature_name, {})
-        self.construction_periods = self.construction_config.get('construction_period', {})
+        self.feature_name = "construction_type"
+        self.year_of_construction_column = "year_of_construction"
+        # Dynamically retrieve and set feature configuration
+        self.get_feature_config(self.feature_name)
 
     def run(self, gdf):
-        """Run the construction type feature collection process."""
-        print(f"Running {self.feature_name} feature process...")
+        """
+        Main method to assign construction types to the GeoDataFrame.
+        """
+        print("Starting construction type assignment...")
 
-        # Initialize the feature column if it does not exist
-        gdf = self.initialize_feature_column(gdf, self.feature_name)
+        # Process feature
+        gdf = self.process_feature(gdf, self.feature_name)
 
-        # Validate that the required year_of_construction_column exists in the GeoDataFrame
-        if not self._validate_required_columns_exist(gdf, [self.year_of_construction_column]):
-            return gdf
+        # Handle invalid or missing construction types
+        invalid_rows = self.check_invalid_rows(gdf, self.feature_name)
+        if not invalid_rows.empty:
+            self.assign_construction_types(gdf, invalid_rows.index)
 
-        # Retrieve construction_type if it is null, some rows are null, or data type is wrong
-        gdf = self.retrieve_data_from_sources(self.feature_name, gdf)
-
-        # Validate the data type of the feature in the DataFrame
-        gdf = self.validate_data(gdf, self.feature_name)
-
-        # Check if data returned is None or null
-        if gdf[self.feature_name].isnull().all():
-            gdf[self.feature_name] = gdf[self.year_of_construction_column].apply(self._get_construction_type)
-
-        else:
-            # Check for null or invalid values in the construction_type column
-            invalid_rows = gdf[self.feature_name].isnull() | gdf[self.feature_name].apply(
-                lambda x: not isinstance(x, str))
-
-            # Assign construction type based on year_of_construction for invalid rows
-            gdf.loc[invalid_rows, self.feature_name] = gdf.loc[invalid_rows, self.year_of_construction_column].apply(
-                self._get_construction_type)
-
-        print(f"Completed {self.feature_name} feature process.")
+        print("Construction type assignment completed.")
         return gdf
 
-    def _get_construction_type(self, year):
-        """Determines the construction type based on the year of construction."""
-        for period, construction_type in self.construction_periods.items():
-            start_year, end_year = map(int, period.split('-'))
-            if start_year <= year <= end_year:
-                return construction_type
-        return None  # Return None if no matching period is found
+    def assign_construction_types(self, gdf, rows):
+        """
+        Assign construction types to specific rows based on year of construction.
+        """
+        gdf.loc[rows, self.feature_name] = gdf.loc[rows].apply(
+            lambda row: self.determine_construction_type(
+                row.get(self.year_of_construction_column)
+            ),
+            axis=1
+        )
+
+    def determine_construction_type(self, year):
+        """
+        Determine the construction type based on the year of construction.
+        """
+        try:
+            year = int(year)
+            for period, construction_type in self.construction_period.items():
+                start_year, end_year = map(int, period.split('-'))
+                if start_year <= year <= end_year:
+                    return construction_type
+        except (ValueError, TypeError):
+            return None

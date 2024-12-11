@@ -1,6 +1,4 @@
 import requests
-from config.config import Config
-import requests
 
 from config.config import Config
 

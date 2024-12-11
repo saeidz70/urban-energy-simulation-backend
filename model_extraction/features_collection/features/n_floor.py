@@ -5,80 +5,79 @@ from model_extraction.features_collection.base_feature import BaseFeature
 
 class NumberOfFloors(BaseFeature):
     """
-    Assigns number of floors to buildings.
+    Assigns and validates the number of floors for buildings in a GeoDataFrame.
     """
     def __init__(self):
         super().__init__()
-        self.feature_name = 'n_floor'
-        self.height_column = 'height'
-        n_floor_config = self.config.get('features', {}).get(self.feature_name, {})
-        self.avg_floor_height = n_floor_config.get("avg_floor_height", 3.3)
-        self.min_n_floor = n_floor_config.get("min", 1)
-        self.max_n_floor = n_floor_config.get("max", 100)
-        self.data_type = n_floor_config.get("type", "int")
+        self.feature_name = "n_floor"
+        self.height_column = "height"
+        self.get_feature_config(self.feature_name)  # Dynamically set configuration for the feature
 
     def run(self, gdf):
-        print(f"Starting the process to assign {self.feature_name}...")  # Essential print 1
+        """
+        Main method to assign and validate the number of floors.
+        """
+        print(f"Starting the process to assign '{self.feature_name}'...")
 
-        # Initialize the feature column if it does not exist
-        gdf = self.initialize_feature_column(gdf, self.feature_name)
+        # Step 1: Process the feature
+        gdf = self.process_feature(gdf, self.feature_name)
 
-        # Validate required columns using BaseFeature method
-        if not self._validate_required_columns_exist(gdf, [self.height_column]):
-            return gdf
+        # Step 2: Handle missing or invalid floor values
+        gdf = self._fill_missing_floors(gdf)
 
-        # Retrieve n_floor data if it is null, some rows are null, or data type is wrong
-        gdf = self.retrieve_data_from_sources(self.feature_name, gdf)
-
-        # Check if data returned is None or has missing values
-        if gdf[self.feature_name].isnull().all():
-            gdf = self._get_osm_data(self.feature_name, gdf)
-            if gdf[self.feature_name].isnull().all():
-                gdf = self._calculate_missing_floors(gdf)
-        else:
-            # Check for null or invalid values in the n_floor column
-            invalid_rows = gdf[self.feature_name].isnull() | gdf[self.feature_name].apply(
-                lambda x: not isinstance(x, int))
-
-            # Calculate missing floors for invalid rows
-            gdf = self._calculate_missing_floors(gdf, invalid_rows)
-
-        # Validate floor values
+        # Step 3: Validate and filter the floor values
         gdf = self._validate_floor_values(gdf)
 
-        print("Number of floors assignment completed.")  # Essential print 2
+        print("Number of floors assignment completed.")
         return gdf
 
-    def _calculate_missing_floors(self, gdf, invalid_rows=None):
+    def _fill_missing_floors(self, gdf):
         """
-        Calculate missing n_floor values using the height column.
+        Fill missing or invalid floor values using various sources.
+        """
+        invalid_rows = self.check_invalid_rows(gdf, self.feature_name)
+
+        if not invalid_rows.empty:
+            print("Fetching data from OSM to fill missing floor values...")
+            osm_data = self._get_osm_data(self.feature_name, gdf)
+            gdf = self.update_missing_values(gdf, osm_data, self.feature_name)
+
+        invalid_rows = self.check_invalid_rows(gdf, self.feature_name)
+
+        if not invalid_rows.empty:
+            print("Calculating floors based on height...")
+            self._assign_floors_from_height(gdf, invalid_rows.index)
+
+        return gdf
+
+    def _assign_floors_from_height(self, gdf, rows):
+        """
+        Assign the number of floors to rows based on building height.
         """
         if self.height_column in gdf.columns:
-            if invalid_rows is None:
-                missing_floors = gdf[self.feature_name].isnull()
-            else:
-                missing_floors = invalid_rows
-
-            if missing_floors.any():
-                print(f"Calculating missing {self.feature_name} values from {self.height_column}.")
-                gdf.loc[missing_floors, self.feature_name] = (
-                        gdf.loc[missing_floors, self.height_column] / self.avg_floor_height
-                ).round().fillna(0).astype(int)
-        return gdf
+            gdf.loc[rows, self.feature_name] = (
+                    gdf.loc[rows, self.height_column] / self.avg_floor_height
+            ).round(0).fillna(0).astype(int)
 
     def _validate_floor_values(self, gdf):
         """
-        Ensure n_floor values are within the configured limits.
+        Validate and filter the number of floors to ensure correctness.
         """
-        print(f"Validating {self.feature_name} values between {self.min_n_floor} and {self.max_n_floor}.")
+        print(f"Validating '{self.feature_name}' values between {self.min} and {self.max}.")
 
-        # Ensure the column is numeric, coercing invalid values to NaN
+        # Ensure the column is numeric
         gdf[self.feature_name] = pd.to_numeric(gdf[self.feature_name], errors="coerce")
 
-        # Replace NaN with the minimum floor value to avoid errors
-        gdf[self.feature_name] = gdf[self.feature_name].fillna(self.min_n_floor)
+        # Replace NaN with the minimum allowed value
+        gdf[self.feature_name] = gdf[self.feature_name].fillna(self.min)
 
-        # Clip values within the range and ensure correct data type
-        gdf[self.feature_name] = gdf[self.feature_name].clip(self.min_n_floor, self.max_n_floor).astype(self.data_type)
+        # Filter and enforce value limits
+        gdf = self.filter_data(
+            gdf,
+            self.feature_name,
+            min_value=self.min,
+            max_value=self.max,
+            data_type=self.type
+        )
 
         return gdf

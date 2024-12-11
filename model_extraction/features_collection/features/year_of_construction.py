@@ -11,42 +11,32 @@ class YearOfConstruction(BaseFeature):
         super().__init__()
         self.feature_name = 'year_of_construction'
         self.census_id_column = 'census_id'
-        year_config = self.config.get('features', {}).get(self.feature_name, {})
-        self.census_columns = list(year_config.get("census_built_year", {}).keys())
-        self.year_mapping = year_config.get("census_built_year", {})
+        self.get_feature_config(self.feature_name)  # Dynamically set configuration for the feature
         self.median_years = self._calculate_median_years()
 
     def run(self, gdf):
-        print(f"Starting the process to assign {self.feature_name}...")  # Essential print 1
+        """
+        Main method to process and assign year of construction data.
+        """
+        print(f"Starting the process to assign '{self.feature_name}'...")
 
-        # Initialize the feature column if it does not exist
-        gdf = self.initialize_feature_column(gdf, self.feature_name)
-
-        # Validate required columns using BaseFeature method
-        if not self._validate_required_columns_exist(gdf, [self.census_id_column]):
-            return gdf
-
-        # Retrieve year_of_construction if it is null, some rows are null, or data type is wrong
-        gdf = self.retrieve_data_from_sources(self.feature_name, gdf)
-
-        # Validate the data type of the feature in the DataFrame
-        gdf = self.validate_data(gdf, self.feature_name)
-
-        # Convert census-related columns to numeric
+        # Step 1: Ensure numeric conversion for census columns
         self._convert_to_numeric(gdf)
 
-        # Check if data returned is None or null
-        if gdf[self.feature_name].isnull().all():
-            gdf = self._assign_years(gdf)
-        else:
-            # Check for null or invalid values in the year_of_construction column
-            invalid_rows = gdf[self.feature_name].isnull() | gdf[self.feature_name].apply(
-                lambda x: not isinstance(x, int))
+        # Step 2: Initialize and validate the feature
+        gdf = self.process_feature(gdf, self.feature_name)
 
-            # Assign years for invalid rows
-            gdf = self._assign_years(gdf, invalid_rows)
+        # Step 3: Handle missing or invalid year values
+        invalid_rows = self.check_invalid_rows(gdf, self.feature_name)
 
-        print("Year of construction assignment completed.")  # Essential print 2
+        if not invalid_rows.empty:
+            print("Assigning years based on census data...")
+            gdf = self._assign_years(gdf, invalid_rows.index)
+
+        # Step 4: Final validation and filtering
+        gdf = self.validate_data(gdf, self.feature_name)
+
+        print("Year of construction assignment completed.")
         return gdf
 
     def _calculate_median_years(self):
@@ -54,7 +44,7 @@ class YearOfConstruction(BaseFeature):
         Calculate median years for each census period.
         """
         median_years = {}
-        for key, period in self.year_mapping.items():
+        for key, period in self.census_built_year.items():
             try:
                 start, end = map(int, period.split('-'))
                 median_years[key] = (start + end) // 2
@@ -62,20 +52,33 @@ class YearOfConstruction(BaseFeature):
                 median_years[key] = None  # Assign None for invalid or unexpected formats
         return median_years
 
-    def _convert_to_numeric(self, gdf):
+    def _assign_years(self, gdf, rows=None):
         """
-        Convert census-related columns to numeric values, handling errors gracefully.
+        Assign year_of_construction to buildings by grouping by census_id.
         """
-        for col in self.census_columns:
-            if col in gdf.columns:
-                gdf[col] = pd.to_numeric(gdf[col], errors='coerce').fillna(0).astype(int)
+        year_mapping = {
+            census_id: self._calculate_group_year(group)
+            for census_id, group in gdf.groupby(self.census_id_column)
+        }
+
+        if rows is None:
+            # Assign to all rows if no specific rows are specified
+            gdf[self.feature_name] = gdf[self.census_id_column].map(year_mapping).fillna(1900).astype(int)
+        else:
+            # Assign only to invalid rows
+            gdf.loc[rows, self.feature_name] = gdf.loc[rows, self.census_id_column].map(
+                year_mapping).fillna(1900).astype(int)
+
+        return gdf
 
     def _calculate_group_year(self, group):
         """
         Calculate the weighted average year for a group of buildings.
         """
+        # Convert relevant columns to numeric to handle mixed types
         building_counts = {
-            col: group[col].sum() for col in self.census_columns if col in group.columns
+            col: pd.to_numeric(group[col], errors='coerce').sum()
+            for col in self.census_built_year.keys() if col in group.columns
         }
         total_count = sum(building_counts.values())
 
@@ -88,20 +91,12 @@ class YearOfConstruction(BaseFeature):
             for col, count in building_counts.items() if self.median_years.get(col) is not None
         )
 
-        return int(round(weighted_year))  # Ensure the result is an integer
+        return int(round(weighted_year))
 
-    def _assign_years(self, gdf, invalid_rows=None):
+    def _convert_to_numeric(self, gdf):
         """
-        Assign year_of_construction to buildings by grouping by census_id.
+        Convert census-related columns to numeric values, handling errors gracefully.
         """
-        year_mapping = {}
-
-        for census_id, group in gdf.groupby(self.census_id_column):
-            year_mapping[census_id] = self._calculate_group_year(group)
-
-        if invalid_rows is None:
-            gdf[self.feature_name] = gdf[self.census_id_column].map(year_mapping).fillna(1900).astype(int)
-        else:
-            gdf.loc[invalid_rows, self.feature_name] = gdf.loc[invalid_rows, self.census_id_column].map(
-                year_mapping).fillna(1900).astype(int)
-        return gdf
+        for col in self.census_built_year.keys():
+            if col in gdf.columns:
+                gdf[col] = pd.to_numeric(gdf[col], errors='coerce').fillna(0).astype(int)

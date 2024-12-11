@@ -1,6 +1,5 @@
 # File: fetcher/db_census_fetcher.py
 import json
-import os
 
 import geopandas as gpd
 import requests
@@ -18,26 +17,19 @@ class DbCensusFetcher(Config):
         self.census_data = self.config["db_census_sections"]
         self.default_crs = f"EPSG:{self.config.get('DEFAULT_CRS', 4326)}"
 
-    def prepare_payload(self):
+    def prepare_payload(self, polygon_gdf):
         """Prepare the payload with the user's polygon."""
         try:
             # Ensure the file exists
-            if not os.path.exists(self.user_polygon_file):
-                raise FileNotFoundError(f"GeoJSON file not found: {self.user_polygon_file}")
+            # if not os.path.exists(self.user_polygon_file):
+            #     raise FileNotFoundError(f"GeoJSON file not found: {self.user_polygon_file}")
 
-            # Load the GeoJSON file as a GeoDataFrame
-            user_polygon_file = gpd.read_file(self.user_polygon_file)
+            # Load the GeoDataFrame
+            user_polygon_file = polygon_gdf
 
             # Ensure it has features
             if user_polygon_file.empty:
                 raise ValueError("GeoJSON file is empty or contains no valid features.")
-
-            # Extract the first geometry
-            user_polygon = user_polygon_file.geometry[0]
-
-            # Check the geometry type
-            if user_polygon.geom_type not in ["Polygon", "MultiPolygon"]:
-                raise ValueError(f"Invalid geometry type: {user_polygon.geom_type}")
 
             # Ensure CRS compatibility
             if user_polygon_file.crs is None:
@@ -45,6 +37,13 @@ class DbCensusFetcher(Config):
             if user_polygon_file.crs.to_string() != self.default_crs:
                 print(f"Reprojecting to default CRS: {self.default_crs}")
                 user_polygon_file = user_polygon_file.to_crs(self.default_crs)
+
+            # Extract the first geometry
+            user_polygon = user_polygon_file.geometry[0]
+
+            # Check the geometry type
+            if user_polygon.geom_type not in ["Polygon", "MultiPolygon"]:
+                raise ValueError(f"Invalid geometry type: {user_polygon.geom_type}")
 
             # Convert the geometry to a GeoJSON-like dictionary
             payload = {
@@ -55,9 +54,9 @@ class DbCensusFetcher(Config):
         except Exception as e:
             raise RuntimeError(f"Error preparing payload: {e}")
 
-    def fetch_census_data(self):
+    def fetch_census_data(self, polygon_gdf):
         """Send a POST request to the database server and fetch census information."""
-        payload = self.prepare_payload()
+        payload = self.prepare_payload(polygon_gdf)
 
         try:
             response = requests.post(
@@ -84,11 +83,13 @@ class DbCensusFetcher(Config):
         print(f"CRS is set to: {self.default_crs}")
         self.selected_census_gdf.to_file(self.census_data, driver='GeoJSON')
         print(f"Census data saved to {self.census_data}.")
+        return self.selected_census_gdf
 
-    def run(self):
+    def run(self, polygon_gdf):
         """Run the process to fetch and save census data."""
-        if self.fetch_census_data():
+        if self.fetch_census_data(polygon_gdf):
             print("Successfully retrieved census data.")
             self.check_and_save_geojson()
+            return self.selected_census_gdf
         else:
             print("Failed to retrieve census data.")

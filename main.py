@@ -30,8 +30,10 @@ if __name__ == '__main__':
     ########## PROCESSING:
     processing = FeatureFactory()
     #
-    processing.run_feature('building_id', gdf)
-    print(gdf[['building_id']].head())
+    gdf = processing.run_feature('neighbours_ids', gdf)
+    print(gdf[['neighbours_ids']].head())
+    gdf.to_file(building_file, driver='GeoJSON')
+    print(f"Data saved to {building_file}.")
 
     # processing.building_id()
     # processing.census_id()

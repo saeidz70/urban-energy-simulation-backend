@@ -5,17 +5,26 @@ class CensusId(BaseFeature):
     def __init__(self):
         super().__init__()
         self.feature_name = 'census_id'
-        self.census_config = self.config.get('features', {}).get(self.feature_name, {})
-        self.census_id_column = self.census_config.get('census_id_column', 'SEZ2011')
+        # Dynamically retrieve and set feature configuration
+        self.get_feature_config(self.feature_name)
 
     def run(self, gdf):
-        # Validate that the required census_id_column exists in the GeoDataFrame
-        self._validate_required_columns_exist(gdf, [self.census_id_column])
+        print("Starting Census ID assignment...")
 
         # Initialize the feature column if it does not exist
         gdf = self.initialize_feature_column(gdf, self.feature_name)
 
-        # Assign the values from the census_id_column to the feature column
-        gdf[self.feature_name] = gdf[self.census_id_column]
+        # Validate that the required census_id_column exists in the GeoDataFrame
+        self.validate_required_columns_exist(gdf, self.feature_name)
 
+        # Assign census IDs
+        gdf = self.assign_census_id(gdf)
+
+        print("Census ID assignment completed.")
+        return gdf
+
+    def assign_census_id(self, gdf):
+        if self.feature_name not in gdf.columns or gdf[self.feature_name].isnull().any():
+            # Assign the values from the census_id_column to the feature column
+            gdf[self.feature_name] = gdf[self.census_id_column]
         return gdf

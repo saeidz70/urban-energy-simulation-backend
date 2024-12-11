@@ -20,7 +20,7 @@ class Population(BaseFeature):
         print(f"Starting the process to assign {self.feature_name}...")  # Essential print 1
 
         # Validate required columns using BaseFeature method
-        self._validate_required_columns_exist(gdf, [self.census_id_column])
+        self.validate_required_columns_exist(gdf, [self.census_id_column])
 
         # Initialize the feature column if it does not exist
         gdf = self.initialize_feature_column(gdf, self.feature_name)

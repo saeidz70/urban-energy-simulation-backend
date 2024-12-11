@@ -1,5 +1,3 @@
-import geopandas as gpd
-
 from config.config import Config
 from model_extraction.preparation.data_preparation import PrepMain
 from model_extraction.transformation.file_to_db import DBServerUploader
@@ -17,6 +15,7 @@ class ScenarioManager(Config):
         self.project_id = ProjectId()
         self.scenario_id = ScenarioId()
         self.scenario_map = {
+            "update": BaselineScenario,
             "baseline": BaselineScenario,
             "geometry": GeometryScenario,
             "demographic": DemographicScenario,
@@ -34,11 +33,12 @@ class ScenarioManager(Config):
         self.scenario_list = self.project_info.get("scenarioList", [])
         print(f"Scenarios to be run: {self.scenario_list}")
 
-    def prepare(self):
+    def prepare(self, polygon_gdf):
         print("Running preparation steps...")
         preparation = PrepMain()
-        preparation.run_all_preparations()
+        building_gdf = preparation.run(polygon_gdf)
         print("Preparation completed.")
+        return building_gdf
 
     def generate_output(self, gdf):
         print("Generating output file...")
@@ -48,22 +48,32 @@ class ScenarioManager(Config):
             self.uploader.upload_geojson(json_result)
         print("Output file generated.")
 
-    def assign_project_and_scenario_id(self, project_id):
-        self.scenario_id.run()
-        if "baseline" in self.scenario_list and project_id == "":
+    def assign_project_and_scenario_id(self, project_id, scenario_id):
+        print(f"Assigning project {project_id} and scenario ID {scenario_id}...")
+
+        if "baseline" in self.scenario_list and (project_id == "" or project_id is None):
+            print("Generating project ID and Scenario ID...")
             self.project_id.run()
-        else:
-            self.load_config()
+            self.scenario_id.run()
+        elif "update" in self.scenario_list:
+            print(f"Setting Project ID {project_id} and Scenario ID {scenario_id} ...")
             self.config["project_info"]["project_id"] = project_id
-            self.save_config()
+            self.config["project_info"]["scenario_id"] = scenario_id
+        else:
+            self.scenario_id.run()
+            self.config["project_info"]["project_id"] = project_id
+        self.save_config()
 
-    def run_scenarios(self, project_id):
+    def run_scenarios(self, project_id, scenario_id, polygon_gdf, gdf=None):
         self.reload_config()
-        self.prepare()
-        self.assign_project_and_scenario_id(project_id)
+        self.assign_project_and_scenario_id(project_id, scenario_id)
 
-        gdf = gpd.read_file(self.building_file)
-        # print("Original GeoDataFrame:", gdf.head())
+        if "update" in self.scenario_list:
+            gdf = gdf
+            self.prepare(polygon_gdf)
+        else:
+            gdf = self.prepare(polygon_gdf)
+
 
         for scenario_name in self.scenario_list:
             scenario_class = self.scenario_map.get(scenario_name.lower())

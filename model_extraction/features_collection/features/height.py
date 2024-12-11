@@ -9,51 +9,56 @@ class Height(BaseFeature):
     """
     Processes and assigns height data to buildings.
     """
+
     def __init__(self):
         super().__init__()
         self.feature_name = 'height'
-        self.height_config = self.config.get("features", {}).get(self.feature_name, {})
-        self.min_height = self.height_config.get("min", 3)
-        self.max_height = self.height_config.get("max", 300)
-        self.data_type = self.height_config.get("type", "float")
-        self.default_crs = self.config.get('DEFAULT_CRS', 4326)
+        self.get_feature_config(self.feature_name)
         self.kriging_filler = KrigingFiller()
         self.db_height_fetcher = DBHeightFetcher()
 
     def run(self, gdf):
-        print(f"Starting the process to assign {self.feature_name}...")
+        """
+        Main method to process and assign height data.
+        """
+        print(f"Starting the process to assign '{self.feature_name}'...")
 
-        # Initialize the feature column if it does not exist
-        gdf = self.initialize_feature_column(gdf, self.feature_name)
+        # Step 1: Process and initialize feature
+        gdf = self.process_feature(gdf, self.feature_name)
+        print(f"Step 1: Processed and initialized feature. Number of buildings: {len(gdf)}")
 
-        # Check CRS and reproject if necessary
-        gdf = self.check_crs_with_default_crs(gdf)
+        # Step 2: Handle missing height values sequentially
+        gdf = self._handle_missing_heights(gdf)
 
-        # Retrieve height data if it is null, some rows are null, or data type is wrong
-        gdf = self.retrieve_data_from_sources(self.feature_name, gdf)
-
-        # Validate the data
-        gdf = self.validate_data(gdf, self.feature_name)
-
-        # Check if data returned is None or has missing values
-        if gdf[self.feature_name].isnull().all():
-            gdf = self.db_height_fetcher.run(gdf, self.feature_name)
-            if gdf[self.feature_name].isnull().all():
-                gdf = self._get_osm_data(self.feature_name, gdf)
-                if gdf[self.feature_name].isnull().all():
-                    gdf = self._calculate_missing_heights(gdf)
-        else:
-            # Check for null or invalid values in the height column
-            invalid_rows = gdf[self.feature_name].isnull() | gdf[self.feature_name].apply(
-                lambda x: not isinstance(x, (int, float)))
-
-            # Calculate missing heights for invalid rows
-            gdf = self._calculate_missing_heights(gdf, invalid_rows)
-
-        # Validate and filter height values
+        # Step 3: Validate and filter height values to ensure correctness
         gdf = self._validate_and_filter_heights(gdf)
 
         print("Height assignment completed.")
+        return gdf
+
+    def _handle_missing_heights(self, gdf):
+        """
+        Handle missing or invalid height values by checking various sources sequentially.
+        """
+        invalid_rows = self.check_invalid_rows(gdf, self.feature_name)
+        print(f"Step 2: Initial invalid rows count: {len(invalid_rows)}")
+
+        if not invalid_rows.empty:
+            print("Fetching height data from OSM...")
+            osm_data = self._get_osm_data(self.feature_name, gdf)
+            gdf = self.update_missing_values(gdf, osm_data, self.feature_name)
+            invalid_rows = self.check_invalid_rows(gdf, self.feature_name)
+            print(f"Step 2: Invalid rows count after fetching from OSM: {len(invalid_rows)}")
+
+        if not invalid_rows.empty:
+            print("Calculating missing height values using Kriging...")
+            gdf = self._calculate_missing_heights(gdf, invalid_rows.index)
+            invalid_rows = self.check_invalid_rows(gdf, self.feature_name)
+            print(f"Step 2: Invalid rows count after Kriging: {len(invalid_rows)}")
+
+        if not invalid_rows.empty:
+            print(f"Warning: {len(invalid_rows)} rows still have missing height values.")
+
         return gdf
 
     def _calculate_missing_heights(self, gdf, invalid_rows=None):
@@ -72,14 +77,25 @@ class Height(BaseFeature):
 
     def _validate_and_filter_heights(self, gdf):
         """
-        Ensure height values are within the configured limits.
+        Validate and filter height values to ensure they are within the configured limits.
         """
-        print(f"Validating and filtering {self.feature_name} values.")
 
-        # Ensure the column is numeric; invalid values are converted to NaN
-        gdf.loc[:, self.feature_name] = pd.to_numeric(gdf[self.feature_name], errors="coerce")
+        print(f"Validating and filtering '{self.feature_name}' values.")
+        print(f"Step 3: Number of buildings before validation and filtering: {len(gdf)}")
 
-        # Use the filter_data method from BaseFeature to filter heights within valid range
-        gdf = self.filter_data(gdf, self.feature_name, self.min_height, self.max_height, self.data_type)
+        # Convert to numeric and round to 2 decimal places
+        gdf[self.feature_name] = pd.to_numeric(gdf[self.feature_name], errors="coerce").round(2)
 
+        print(f"Number of buildings before filtering: {len(gdf)}")
+        print(f"min: {self.min}, max: {self.max}, type: {self.type}")
+
+        # Filter values based on configuration
+        gdf = self.filter_data(
+            gdf,
+            feature_name=self.feature_name,
+            min_value=self.min,
+            max_value=self.max,
+            data_type=self.type
+        )
+        print(f"Step 3: Number of buildings after validation and filtering: {len(gdf)}")
         return gdf

@@ -12,6 +12,7 @@ class Volume(BaseFeature):
         self.feature_name = 'volume'
         self.height_column = 'height'
         self.area_column = 'area'
+        self.get_feature_config(self.feature_name)  # Dynamically retrieve and set feature configuration
 
     def run(self, gdf):
         print(f"Starting the process to assign {self.feature_name}...")  # Essential print 1
@@ -20,7 +21,7 @@ class Volume(BaseFeature):
         gdf = self.initialize_feature_column(gdf, self.feature_name)
 
         # Validate required columns using BaseFeature method
-        if not self._validate_required_columns_exist(gdf, [self.height_column, self.area_column]):
+        if not self.validate_required_columns_exist(gdf, self.feature_name):
             return gdf
 
         # Retrieve volume data if it is null, some rows are null, or data type is wrong
