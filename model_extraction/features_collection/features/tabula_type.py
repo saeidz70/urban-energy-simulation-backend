@@ -9,31 +9,8 @@ class TabulaType(BaseFeature):
     """
     Assigns Tabula types to buildings.
     """
-    def __init__(self):
-        super().__init__()
-        self.feature_name = "tabula_type"
-        self.get_feature_config(self.feature_name)  # Dynamically set configuration for the feature
 
-    def run(self, gdf):
-        """
-        Main method to assign Tabula types to the GeoDataFrame.
-        """
-        print("Starting TabulaType assignment...")
-
-        # Process feature
-        gdf = self.process_feature(gdf, self.feature_name)
-
-        # Handle invalid or missing Tabula types
-        invalid_rows = self.check_invalid_rows(gdf, self.feature_name)
-        if not invalid_rows.empty:
-            gdf = self.assign_tabula_types(gdf, invalid_rows.index)
-
-        gdf = self.validate_data(gdf, self.feature_name)
-
-        print("TabulaType assignment completed.")
-        return gdf
-
-    def assign_tabula_types(self, gdf, rows):
+    def calculate(self, gdf, rows):
         """
         Assign Tabula types to specific rows.
         """
@@ -44,4 +21,8 @@ class TabulaType(BaseFeature):
             [random.choice(self.tabula_types) for _ in range(len(rows))],
             index=rows
         ).astype(gdf[self.feature_name].dtype)
+
+        gdf = self.validate_data(gdf, self.feature_name)
+
+        print("TabulaType assignment completed.")
         return gdf

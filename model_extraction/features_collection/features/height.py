@@ -9,40 +9,15 @@ class Height(BaseFeature):
     """
     Processes and assigns height data to buildings.
     """
-
     def __init__(self):
         super().__init__()
-        self.feature_name = 'height'
-        self.get_feature_config(self.feature_name)
         self.kriging_filler = KrigingFiller()
         self.db_height_fetcher = DBHeightFetcher()
 
-    def run(self, gdf):
-        """
-        Main method to process and assign height data.
-        """
-        print(f"Starting the process to assign '{self.feature_name}'...")
-
-        # Step 1: Process and initialize feature
-        gdf = self.process_feature(gdf, self.feature_name)
-        print(f"Step 1: Processed and initialized feature. Number of buildings: {len(gdf)}")
-
-        # Step 2: Handle missing height values sequentially
-        gdf = self._handle_missing_heights(gdf)
-
-        # Step 3: Validate and filter height values to ensure correctness
-        gdf = self._validate_and_filter_heights(gdf)
-
-        print("Height assignment completed.")
-        return gdf
-
-    def _handle_missing_heights(self, gdf):
+    def calculate(self, gdf, invalid_rows=None):
         """
         Handle missing or invalid height values by checking various sources sequentially.
         """
-        invalid_rows = self.check_invalid_rows(gdf, self.feature_name)
-        print(f"Step 2: Initial invalid rows count: {len(invalid_rows)}")
-
         if not invalid_rows.empty:
             print("Fetching height data from OSM...")
             osm_data = self._get_osm_data(self.feature_name, gdf)
@@ -58,6 +33,9 @@ class Height(BaseFeature):
 
         if not invalid_rows.empty:
             print(f"Warning: {len(invalid_rows)} rows still have missing height values.")
+
+        # Validate and filter height values
+        gdf = self._validate_and_filter_heights(gdf)
 
         return gdf
 

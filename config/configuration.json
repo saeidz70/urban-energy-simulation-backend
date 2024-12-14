@@ -349,6 +349,16 @@
             ],
             "description": "List of neighbor buildings surfaces in 100m radios."
         },
+        "saeid": {
+            "type": "str",
+            "required_features": [
+                "height"
+            ],
+            "min": 1,
+            "max": 100,
+            "avg_floor_height": 3.2,
+            "description": "Saeid test."
+        },
         "geometry": {
             "type": "polygon",
             "required_features": [],
@@ -356,17 +366,50 @@
         }
     },
     "project_info": {
-        "projectName": "Cenisia",
+        "projectName": "Torino",
         "mapCenter": {
             "latitude": 45.43676673688583,
             "longitude": 7.606706647981852,
             "zoom": 8
         },
-        "polygonArray": [],
-        "scenarioList": [
-            "update"
+        "polygonArray": [
+            [
+                7.655926633390336,
+                45.067195959891066
+            ],
+            [
+                7.656377244520445,
+                45.06916608375739
+            ],
+            [
+                7.655068326475843,
+                45.06956010038213
+            ],
+            [
+                7.653802323776968,
+                45.06954494594678
+            ],
+            [
+                7.65262215176954,
+                45.067756694366004
+            ],
+            [
+                7.6543173079256634,
+                45.06686254759557
+            ],
+            [
+                7.655561852951677,
+                45.06639273606023
+            ],
+            [
+                7.655926633390336,
+                45.067195959891066
+            ]
         ],
-        "scenario_id": "2e1f38c5-66b3-46e5-8681-d71a6c0fb96e",
-        "project_id": "b1c29308-b941-4c60-a166-c04b2db82af5"
+        "scenarioList": [
+            "baseline"
+        ],
+        "scenario_id": "",
+        "project_id": ""
     }
 }

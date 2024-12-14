@@ -57,7 +57,13 @@ class FeatureFactory(Config):
             # Instantiate the feature class and call its `run` method
             feature_instance = feature_class()
             print(f"Running feature extraction for '{feature_name}'.")
-            return feature_instance.run(gdf)
+
+            # Dynamically call the run method
+            if hasattr(feature_instance, 'run'):
+                return feature_instance.run(gdf, feature_name)
+            else:
+                # Fallback to BaseFeature's run
+                return super(feature_class, feature_instance).run(gdf, feature_name)
         except Exception as e:
             print(f"Error while running feature '{feature_name}': {e}")
             raise

@@ -7,35 +7,12 @@ class NumberOfFloors(BaseFeature):
     """
     Assigns and validates the number of floors for buildings in a GeoDataFrame.
     """
-    def __init__(self):
-        super().__init__()
-        self.feature_name = "n_floor"
-        self.height_column = "height"
-        self.get_feature_config(self.feature_name)  # Dynamically set configuration for the feature
 
-    def run(self, gdf):
-        """
-        Main method to assign and validate the number of floors.
-        """
-        print(f"Starting the process to assign '{self.feature_name}'...")
-
-        # Step 1: Process the feature
-        gdf = self.process_feature(gdf, self.feature_name)
-
-        # Step 2: Handle missing or invalid floor values
-        gdf = self._fill_missing_floors(gdf)
-
-        # Step 3: Validate and filter the floor values
-        gdf = self._validate_floor_values(gdf)
-
-        print("Number of floors assignment completed.")
-        return gdf
-
-    def _fill_missing_floors(self, gdf):
+    def calculate(self, gdf, rows):
         """
         Fill missing or invalid floor values using various sources.
         """
-        invalid_rows = self.check_invalid_rows(gdf, self.feature_name)
+        invalid_rows = rows
 
         if not invalid_rows.empty:
             print("Fetching data from OSM to fill missing floor values...")
@@ -48,15 +25,18 @@ class NumberOfFloors(BaseFeature):
             print("Calculating floors based on height...")
             self._assign_floors_from_height(gdf, invalid_rows.index)
 
+        gdf = self._validate_floor_values(gdf)
+
+        print("Number of floors assignment completed.")
         return gdf
 
     def _assign_floors_from_height(self, gdf, rows):
         """
         Assign the number of floors to rows based on building height.
         """
-        if self.height_column in gdf.columns:
+        if self.required_features[0] in gdf.columns:
             gdf.loc[rows, self.feature_name] = (
-                    gdf.loc[rows, self.height_column] / self.avg_floor_height
+                    gdf.loc[rows, self.required_features[0]] / self.avg_floor_height
             ).round(0).fillna(0).astype(int)
 
     def _validate_floor_values(self, gdf):

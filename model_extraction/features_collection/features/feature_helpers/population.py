@@ -16,7 +16,9 @@ class Population(BaseFeature):
         self.population_column = "P1"
         self.volume_calculator = Volume()
 
-    def run(self, gdf):
+    def run(self, gdf, feature_name):
+
+
         print(f"Starting the process to assign {self.feature_name}...")  # Essential print 1
 
         # Validate required columns using BaseFeature method

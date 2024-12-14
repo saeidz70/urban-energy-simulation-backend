@@ -1,5 +1,6 @@
 import os
 import warnings
+from abc import ABC, abstractmethod
 
 import geopandas as gpd
 import pandas as pd
@@ -7,10 +8,11 @@ import pandas as pd
 from model_extraction.data_manager.utility import UtilityProcess
 
 
-class BaseFeature(UtilityProcess):
+class BaseFeature(UtilityProcess, ABC):
     def __init__(self):
         # Initialize default and projected CRS from configuration
         super().__init__()
+        self.feature_name = None
         self.projected_crs = self.config.get('PROJECTED_CRS', 'EPSG:32632')
         self.default_crs = self.config.get('DEFAULT_CRS', 4326)
 
@@ -123,3 +125,36 @@ class BaseFeature(UtilityProcess):
         for key, value in feature_config.items():
             setattr(self, key, value)
         return feature_config
+
+    def run(self, gdf, feature_name):
+        """
+        Main method to assign feature values to the GeoDataFrame.
+        """
+        self.feature_name = feature_name
+        self.get_feature_config(self.feature_name)  # Dynamically retrieve and set feature configuration
+        self.dep = self.config.get('required_features', [])
+        print(f"Starting {self.feature_name} assignment...")
+
+        # Process feature and initialize column
+        gdf = self.process_feature(gdf, self.feature_name)
+
+        # Handle invalid or missing Tabula IDs
+        invalid_rows = self.check_invalid_rows(gdf, self.feature_name)
+        print(f"Invalid rows count: {len(invalid_rows)} for {self.feature_name}")
+        if not invalid_rows.empty:
+            gdf = self.calculate(gdf, invalid_rows.index)
+
+        # Validate and filter the feature data
+        gdf = self.validate_data(gdf, self.feature_name)
+
+        print(f"{self.feature_name} assignment completed.")
+        return gdf
+
+    @abstractmethod
+    def calculate(self, gdf, rows):
+        """
+        Default calculation method: Assigns a 'not defined' value.
+        """
+        print(f"No specific calculation defined for {self.feature_name}. Assigning 'not defined' to rows.")
+        gdf.loc[rows, self.feature_name] = "not defined"
+        return gdf

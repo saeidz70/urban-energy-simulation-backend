@@ -5,36 +5,13 @@ class Usage(BaseFeature):
     """
     Processes and filters building usage data based on allowed usage types.
     """
-    def __init__(self):
-        super().__init__()
-        self.feature_name = "usage"
-        self.census_id_column = "census_id"
-        self.default_usage = "residential"  # Default fallback usage
-        self.get_feature_config(self.feature_name)  # Dynamically set configuration for the feature
 
-    def run(self, gdf):
-        """
-        Main method to process and assign usage data.
-        """
-        print(f"Starting the process to assign '{self.feature_name}'...")
-
-        # Step 1: Process feature
-        gdf = self.process_feature(gdf, self.feature_name)
-
-        # Step 2: Handle missing or invalid usage values
-        gdf = self._handle_missing_usage(gdf)
-
-        # Step 3: Filter and normalize usage values
-        gdf = self._filter_usage_values(gdf)
-
-        print("Usage assignment completed.")
-        return gdf
-
-    def _handle_missing_usage(self, gdf):
+    def calculate(self, gdf, rows):
         """
         Handle invalid or missing usage values by fetching data from OSM and census.
         """
-        invalid_rows = self.check_invalid_rows(gdf, self.feature_name)
+        self.default_usage = "residential"  # Default fallback usage
+        invalid_rows = rows
 
         if not invalid_rows.empty:
             print("Fetching usage data from OSM...")
@@ -50,6 +27,9 @@ class Usage(BaseFeature):
             print("Calculating usage data from census information...")
             gdf = self._calculate_usage(gdf, invalid_rows.index)
 
+        gdf = self._filter_usage_values(gdf)
+
+        print("Usage assignment completed.")
         return gdf
 
     def _calculate_usage(self, gdf, rows):
@@ -59,11 +39,11 @@ class Usage(BaseFeature):
         usage_mapping = {}
 
         # Group by census_id and calculate predominant usage for each group
-        for census_id, group in gdf.loc[rows].groupby(self.census_id_column):
+        for census_id, group in gdf.loc[rows].groupby(self.required_features[0]):
             usage_mapping[census_id] = self._calculate_group_usage(group)
 
         # Assign calculated usage back to the GeoDataFrame
-        gdf.loc[rows, self.feature_name] = gdf.loc[rows, self.census_id_column].map(
+        gdf.loc[rows, self.feature_name] = gdf.loc[rows, self.required_features[0]].map(
             usage_mapping).fillna(self.default_usage)
 
         return gdf
