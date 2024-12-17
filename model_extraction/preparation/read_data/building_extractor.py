@@ -14,6 +14,8 @@ class BuildingExtractor(Config):
         self.user_file_path = self.config['user_building_file']
         self.output_file_path = self.config['building_path']
         self.default_crs = f"EPSG:{self.config.get('DEFAULT_CRS', 4326)}"
+        self.source_column = "building_source"
+        self.source_config = self.config.get('features', {}).get(self.source_column, {}).get("source", {})
         self.boundary_polygon = None
 
     def _load_boundary(self, boundaries):
@@ -54,15 +56,17 @@ class BuildingExtractor(Config):
         user_gdf = self._read_file(self.user_file_path, "user")
         user_gdf = self._ensure_crs(user_gdf, self.default_crs)
         user_gdf = user_gdf[user_gdf.geometry.is_valid]
-        user_gdf = user_gdf[user_gdf.geometry.apply(lambda geom: geom.within(self.boundary_polygon))]
-        return user_gdf[['geometry']]
+        user_buildings = user_gdf[user_gdf.geometry.apply(lambda geom: geom.within(self.boundary_polygon))]
+        user_buildings[self.source_column] = self.source_config.get('user')
+        return user_buildings[['geometry', self.source_column]]
 
     def _extract_from_osm(self):
         """Extract building footprints from OSM."""
-        buildings = ox.features_from_polygon(self.boundary_polygon, tags={'building': True})
-        if buildings.empty:
+        osm_buildings = ox.features_from_polygon(self.boundary_polygon, tags={'building': True})
+        if osm_buildings.empty:
             raise ValueError("No buildings found in the specified boundary.")
-        return buildings[['geometry']]
+        osm_buildings[self.source_column] = self.source_config.get('osm')
+        return osm_buildings[['geometry', self.source_column]]
 
     def _save_buildings(self, buildings_gdf):
         """Save building data to a GeoJSON file."""

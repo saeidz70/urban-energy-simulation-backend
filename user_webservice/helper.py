@@ -119,13 +119,18 @@ class DataHelper(Config):
     def save_project_info(self, data):
         self.project_id = data.get("project_id", "")
         self.scenario_id = data.get("scenario_id", "")
+
+        if not self.project_id or not self.scenario_id:
+            self.project_id, self.scenario_id = self.manager.assign_project_and_scenario_id(self.project_id,
+                                                                                            self.scenario_id)
+
         project_info = {
             "projectName": data.get("projectName"),
             "mapCenter": data.get("mapCenter"),
             "polygonArray": data.get("polygonArray"),
             "scenarioList": data.get("scenarioList"),
-            "scenario_id": data.get("scenario_id"),
-            "project_id": data.get("project_id")
+            "project_id": self.project_id,
+            "scenario_id": self.scenario_id,
         }
         self.config["project_info"] = project_info
         print("Project data saved in project section of config.json.")

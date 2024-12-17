@@ -12,8 +12,8 @@ class ScenarioManager(Config):
         super().__init__()
         self.building_file = self.config.get('building_path')
         self.uploader = DBServerUploader()
-        self.project_id = ProjectId()
-        self.scenario_id = ScenarioId()
+        self.project_id_generator = ProjectId()
+        self.scenario_id_generator = ScenarioId()
         self.scenario_map = {
             "update": BaselineScenario,
             "baseline": BaselineScenario,
@@ -49,24 +49,29 @@ class ScenarioManager(Config):
         print("Output file generated.")
 
     def assign_project_and_scenario_id(self, project_id, scenario_id):
-        print(f"Assigning project {project_id} and scenario ID {scenario_id}...")
+        """Assign or generate project and scenario IDs as needed."""
+        if not project_id:
+            print("No project_id provided; generating a new Project ID...")
+            project_id = self.project_id_generator.run()
 
-        if "baseline" in self.scenario_list and (project_id == "" or project_id is None):
-            print("Generating project ID and Scenario ID...")
-            self.project_id.run()
-            self.scenario_id.run()
-        elif "update" in self.scenario_list:
-            print(f"Setting Project ID {project_id} and Scenario ID {scenario_id} ...")
-            self.config["project_info"]["project_id"] = project_id
-            self.config["project_info"]["scenario_id"] = scenario_id
-        else:
-            self.scenario_id.run()
-            self.config["project_info"]["project_id"] = project_id
-        self.save_config()
+        if not scenario_id:
+            print("No scenario_id provided; generating a new Scenario ID...")
+            scenario_id = self.scenario_id_generator.run()
+
+        return project_id, scenario_id  # Return the updated IDs
 
     def run_scenarios(self, project_id, scenario_id, polygon_gdf, gdf=None):
         self.reload_config()
-        self.assign_project_and_scenario_id(project_id, scenario_id)
+
+        # Assign or generate project and scenario IDs and capture the updated values
+        project_id, scenario_id = self.assign_project_and_scenario_id(project_id, scenario_id)
+
+        # Update the config file to reflect the updated IDs
+        self.config["project_info"]["project_id"] = project_id
+        self.config["project_info"]["scenario_id"] = scenario_id
+        self.save_config()
+
+        print(f"Project ID: {project_id}, Scenario ID: {scenario_id} saved successfully.")
 
         if "update" in self.scenario_list:
             gdf = gdf

@@ -16,6 +16,7 @@
     "database_url": "http://172.25.13.16:8002/api/new_validated_building_scenario/",
     "db_census_url": "http://172.25.13.16:8002/api/census_spatial_post/",
     "db_height_url": "http://172.25.13.16:8001/height/",
+    "db_building_id_url": "http://172.25.13.16:8001/building_id/",
     "database_headers": {
         "Authorization": "Token 90c6fa0c5d08c5a7a72f2b452757592e1c4b8c9b",
         "Content-Type": "application/json"
@@ -349,15 +350,15 @@
             ],
             "description": "List of neighbor buildings surfaces in 100m radios."
         },
-        "saeid": {
+        "building_source": {
             "type": "str",
-            "required_features": [
-                "height"
-            ],
-            "min": 1,
-            "max": 100,
-            "avg_floor_height": 3.2,
-            "description": "Saeid test."
+            "required_features": [],
+            "sources": {
+                "osm": "OpenStreetMap",
+                "user": "User",
+                "db": "Database"
+            },
+            "description": "Source of the building."
         },
         "geometry": {
             "type": "polygon",
@@ -366,50 +367,17 @@
         }
     },
     "project_info": {
-        "projectName": "Torino",
+        "projectName": "Cenisia",
         "mapCenter": {
             "latitude": 45.43676673688583,
             "longitude": 7.606706647981852,
             "zoom": 8
         },
-        "polygonArray": [
-            [
-                7.655926633390336,
-                45.067195959891066
-            ],
-            [
-                7.656377244520445,
-                45.06916608375739
-            ],
-            [
-                7.655068326475843,
-                45.06956010038213
-            ],
-            [
-                7.653802323776968,
-                45.06954494594678
-            ],
-            [
-                7.65262215176954,
-                45.067756694366004
-            ],
-            [
-                7.6543173079256634,
-                45.06686254759557
-            ],
-            [
-                7.655561852951677,
-                45.06639273606023
-            ],
-            [
-                7.655926633390336,
-                45.067195959891066
-            ]
-        ],
+        "polygonArray": [],
         "scenarioList": [
-            "baseline"
+            "geometry"
         ],
-        "scenario_id": "",
-        "project_id": ""
+        "project_id": null,
+        "scenario_id": null
     }
 }

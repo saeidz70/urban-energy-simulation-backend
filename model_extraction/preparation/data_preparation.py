@@ -2,7 +2,7 @@ import geopandas as gpd
 
 from config.config import Config
 from model_extraction.preparation.data_cleaning.clean_null import CleanGeoData
-from model_extraction.preparation.read_data.building_extractor import BuildingExtractor
+from model_extraction.preparation.read_data.building_manager import BuildingManager
 from model_extraction.preparation.read_data.census_selector import CensusSelector
 from model_extraction.preparation.read_data.data_integration import DataIntegration
 from model_extraction.preparation.read_data.db_census_fetcher import DbCensusFetcher
@@ -27,7 +27,11 @@ class PrepMain(Config):
 
     def extract_buildings(self, boundaries: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         print("Extracting buildings")
-        return BuildingExtractor().run(boundaries)
+        return BuildingManager().run(boundaries)
+
+    # def extract_buildings(self, boundaries: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    #     print("Extracting buildings")
+    #     return BuildingExtractor().run(boundaries)
 
     def integrate_data(self, buildings_gdf: gpd.GeoDataFrame,
                        selected_census_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
