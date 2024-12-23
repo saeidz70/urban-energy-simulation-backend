@@ -19,6 +19,13 @@ class Height(BaseFeature):
         Handle missing or invalid height values by checking various sources sequentially.
         """
         if not invalid_rows.empty:
+            print("Fetching height data from DB...")
+            db_data = self.db_height_fetcher.run(gdf, self.feature_name)
+            gdf = self.update_missing_values(gdf, db_data, self.feature_name)
+            invalid_rows = self.check_invalid_rows(gdf, self.feature_name)
+            print(f"Step 2: Invalid rows count after fetching from DB: {len(invalid_rows)}")
+
+        if not invalid_rows.empty:
             print("Fetching height data from OSM...")
             osm_data = self._get_osm_data(self.feature_name, gdf)
             gdf = self.update_missing_values(gdf, osm_data, self.feature_name)

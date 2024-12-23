@@ -10,6 +10,7 @@ from config.config import Config
 class OutputFileGenerator(Config):
     def __init__(self):
         super().__init__()
+        self.load_config()
         self.output_file = self.config.get('output_path')
         self.default_crs = self.config.get('DEFAULT_CRS', 4326)
         self.features = set(self.config["features"].keys())

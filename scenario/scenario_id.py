@@ -30,8 +30,9 @@ class ScenarioId(Config):
     def run(self):
         """Run the scenario ID generation process."""
         try:
-            self.generate_scenario_id()
+            scenario_id = self.generate_scenario_id()
             print("scenario ID generation process completed successfully.")
+            return scenario_id
         except Exception as e:
             print(f"Error during scenario ID generation: {e}")
             raise

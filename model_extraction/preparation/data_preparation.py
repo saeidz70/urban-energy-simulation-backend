@@ -29,10 +29,6 @@ class PrepMain(Config):
         print("Extracting buildings")
         return BuildingManager().run(boundaries)
 
-    # def extract_buildings(self, boundaries: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-    #     print("Extracting buildings")
-    #     return BuildingExtractor().run(boundaries)
-
     def integrate_data(self, buildings_gdf: gpd.GeoDataFrame,
                        selected_census_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         print("Integrating data")

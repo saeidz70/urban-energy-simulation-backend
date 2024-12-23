@@ -1,39 +1,45 @@
-import json
-
-import geopandas as gpd
+import pandas as pd
 import requests
 
+from config.config import Config
 
-class DatabaseCheck:
-    def __init__(self, config):
-        self.db_url = config['database_url']
 
-    def get_data_from_db(self, feature, buildings_gdf):
-        # Convert user_building_file GeoDataFrame to GeoJSON format
-        geojson_data = buildings_gdf.to_json()
+class DatabaseCheck(Config):
+    """
+    Fetches data from a database for specific building IDs and features.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.db_url = self.config['database_url']
+
+    def get_data_from_db(self, feature_name, buildings_gdf):
+        """
+        Retrieve a feature for buildings with building_source as "Database".
+        """
+        # Filter buildings with source "Database"
+        database_buildings = buildings_gdf[buildings_gdf['building_source'] == "Database"]
+
+        if database_buildings.empty:
+            print("No buildings with source 'Database' to query.")
+            return pd.DataFrame(columns=["building_id", feature_name])
+
+        # Extract building IDs
+        building_ids = database_buildings['building_id'].tolist()
 
         try:
-            # Send request to the database with the feature and building geometries
-            response = requests.post(self.db_url, json={
-                "feature": feature,
-                "user_building_file": json.loads(geojson_data)
-            })
+            # Send request to the database with building IDs and feature name
+            response = requests.post(
+                self.db_url,
+                json={"building_ids": building_ids},
+                params={"feature_name": feature_name}
+            )
+            response.raise_for_status()
 
-            # Check for a successful response
-            if response.status_code == 200:
-                # Convert response JSON to GeoDataFrame
-                response_geojson = response.json()
-                updated_gdf = gpd.GeoDataFrame.from_features(response_geojson["features_collection"])
+            # Parse the response JSON
+            data = response.json()
+            return pd.DataFrame(data)  # Expected: [{"building_id": "db123", "n_floors": 3}, ...]
 
-                # Perform a spatial join to match geometries
-                matched_gdf = gpd.sjoin(buildings_gdf[['geometry']], updated_gdf[['geometry', feature]],
-                                        how='inner', predicate='intersects')
-
-                # Drop unnecessary columns and keep only geometry and feature
-                matched_gdf = matched_gdf[['geometry', feature]]
-                return matched_gdf
-
-            return None
         except requests.RequestException as e:
             print(f"Error querying database: {e}")
-            return None
+            return pd.DataFrame(columns=["building_id", feature_name])

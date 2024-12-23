@@ -132,7 +132,6 @@ class BaseFeature(UtilityProcess, ABC):
         """
         self.feature_name = feature_name
         self.get_feature_config(self.feature_name)  # Dynamically retrieve and set feature configuration
-        self.dep = self.config.get('required_features', [])
         print(f"Starting {self.feature_name} assignment...")
 
         # Process feature and initialize column

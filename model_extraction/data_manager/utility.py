@@ -14,8 +14,8 @@ class UtilityProcess(Config):
 
     def initialize_helpers(self):
         """Initialize helper classes for data checking."""
-        self.data_check = DataCheck(self.config)
-        self.db_check = DatabaseCheck(self.config)
+        self.data_check = DataCheck()
+        self.db_check = DatabaseCheck()
 
     def retrieve_data_from_sources(self, feature, buildings_gdf):
         """
@@ -90,21 +90,21 @@ class UtilityProcess(Config):
         except Exception as e:
             print(f"Error retrieving user data for '{feature}': {e}")
 
-        # if data is None or data.empty:
-        #     try:
-        #         print(f"Retrieving '{feature}' data from database...")
-        #         data = self.db_check.get_data_from_db(feature, buildings_gdf)
-        #     except Exception as e:
-        #         print(f"Error retrieving database data for '{feature}': {e}")
-        # else:
-        # try:
-        #     print(f"Filling null values for '{feature}' using database data...")
-        #     db_data = self.db_check.get_data_from_db(feature, buildings_gdf)
-        #     if db_data is not None and not db_data.empty:
-        #         data = data.combine_first(db_data)
-        #     print(f"Successfully retrieved '{feature}' data with columns: {data.columns}")
-        # except Exception as e:
-        #     print(f"Error retrieving database data for '{feature}': {e}")
+        if data is None or data.empty:
+            try:
+                print(f"Retrieving '{feature}' data from database...")
+                data = self.db_check.get_data_from_db(feature, buildings_gdf)
+            except Exception as e:
+                print(f"Error retrieving database data for '{feature}': {e}")
+        else:
+            try:
+                print(f"Filling null values for '{feature}' using database data...")
+                db_data = self.db_check.get_data_from_db(feature, buildings_gdf)
+                if db_data is not None and not db_data.empty:
+                    data = data.combine_first(db_data)
+                print(f"Successfully retrieved '{feature}' data with columns: {data.columns}")
+            except Exception as e:
+                print(f"Error retrieving database data for '{feature}': {e}")
 
         if data is not None and not data.empty:
             print(f"Successfully retrieved '{feature}' data with columns: {data.columns}")

@@ -1,5 +1,4 @@
 {
-    "user_file_path": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/input_files/shp/my_user_file.geojson",
     "user_building_file": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/input_files/shp/user_building_file.geojson",
     "building_path": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/output_files/buildings.geojson",
     "output_path": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/output_files/output_building.geojson",
@@ -9,7 +8,6 @@
     "selected_boundaries": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/output_files/selected_boundaries.geojson",
     "dtm_path": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/input_files/DTM/DTM5_155.tif",
     "dsm_path": "/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/data_source/input_files/DSM/dsm.tif",
-    "tabula": "data_source/input_files/TABULA/TABULA_matching.csv",
     "PROJECTED_CRS": 32632,
     "DEFAULT_CRS": 4326,
     "osm_overpass_url": "http://overpass-api.de/api/interpreter",
@@ -17,6 +15,7 @@
     "db_census_url": "http://172.25.13.16:8002/api/census_spatial_post/",
     "db_height_url": "http://172.25.13.16:8001/height/",
     "db_building_id_url": "http://172.25.13.16:8001/building_id/",
+    "db_feature_url": "http://172.25.13.16:8001/",
     "database_headers": {
         "Authorization": "Token 90c6fa0c5d08c5a7a72f2b452757592e1c4b8c9b",
         "Content-Type": "application/json"
@@ -27,28 +26,6 @@
         "n_floor": "building:levels",
         "usage": "building",
         "year_of_construction": "start_date"
-    },
-    "translation": {
-        "height": "UN_VOL_AV",
-        "area": "Area",
-        "n_floor": "building:levels",
-        "net_leased_area": "net_leased_area",
-        "gross_floor_area": "net_leased_area",
-        "usage": "EDIFC_USO",
-        "year_of_construction": "EPOCA_COST",
-        "census_id": "SEZ2011",
-        "tot_area_per_cens_id": "tot_area_per_cens_id",
-        "n_family": "n_fam",
-        "construction_type": "EDIFC_STAT",
-        "w2w": "w2w",
-        "neighbours_surfaces": "neighbours_surfaces",
-        "neighbours_ids": "neighbours_ids",
-        "hvac_type": "hvac_type",
-        "tabula_type": "Tabula_type",
-        "tabula_id": "Tabula_id",
-        "cooling": "bool",
-        "heating": "bool",
-        "geometry": "geometry"
     },
     "scenarios": {
         "baseline_scenario": [
@@ -366,18 +343,45 @@
             "description": "Geometry of the building."
         }
     },
+    "translation": {
+        "height": "UN_VOL_AV",
+        "area": "Area",
+        "n_floor": "building:levels",
+        "net_leased_area": "net_leased_area",
+        "gross_floor_area": "net_leased_area",
+        "usage": "EDIFC_USO",
+        "year_of_construction": "EPOCA_COST",
+        "census_id": "SEZ2011",
+        "tot_area_per_cens_id": "tot_area_per_cens_id",
+        "n_family": "n_fam",
+        "construction_type": "EDIFC_STAT",
+        "w2w": "w2w",
+        "neighbours_surfaces": "neighbours_surfaces",
+        "neighbours_ids": "neighbours_ids",
+        "hvac_type": "hvac_type",
+        "tabula_type": "Tabula_type",
+        "tabula_id": "Tabula_id",
+        "cooling": "bool",
+        "heating": "bool",
+        "geometry": "geometry"
+    },
     "project_info": {
+        "project_id": "e6bd375e-6106-446d-b7ce-af5e10e3dce8",
+        "scenario_id": "",
         "projectName": "Cenisia",
-        "mapCenter": {
+        "scenario_name": "",
+        "scenarioList": [
+            "geometry"
+        ],
+        "translation": {},
+        "project_center": {
             "latitude": 45.43676673688583,
             "longitude": 7.606706647981852,
             "zoom": 8
         },
-        "polygonArray": [],
-        "scenarioList": [
-            "geometry"
-        ],
-        "project_id": null,
-        "scenario_id": null
+        "project_boundary": {
+            "type": "Polygon",
+            "coordinates": []
+        }
     }
 }

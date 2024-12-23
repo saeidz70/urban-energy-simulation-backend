@@ -8,11 +8,10 @@ class NumberOfFloors(BaseFeature):
     Assigns and validates the number of floors for buildings in a GeoDataFrame.
     """
 
-    def calculate(self, gdf, rows):
+    def calculate(self, gdf, invalid_rows):
         """
         Fill missing or invalid floor values using various sources.
         """
-        invalid_rows = rows
 
         if not invalid_rows.empty:
             print("Fetching data from OSM to fill missing floor values...")

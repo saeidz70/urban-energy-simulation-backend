@@ -8,14 +8,17 @@ class Config:
         self.load_config()  # Load configuration at initialization
 
     def load_config(self):
-        """Reloads the configuration from the JSON file specified by config_path."""
         try:
             with open(self.config_path, 'r') as f:
                 self.config = json.load(f)
-        except Exception as e:
-            print(f"Failed to reload configuration: {str(e)}")
+        except FileNotFoundError:
+            print(f"Config file {self.config_path} not found. Using default config.")
+            self.config = {}
 
     def save_config(self):
-        # Save the updated config
-        with open(self.config_path, 'w') as file:
-            json.dump(self.config, file, indent=4)
+        try:
+            with open(self.config_path, 'w') as f:
+                json.dump(self.config, f, indent=4)
+            print(f"Config saved to {self.config_path}.")
+        except Exception as e:
+            print(f"Error saving config: {e}")

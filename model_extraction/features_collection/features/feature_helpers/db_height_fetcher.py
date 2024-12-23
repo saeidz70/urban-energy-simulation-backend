@@ -33,7 +33,8 @@ class DBHeightFetcher(Config):
             data = response.json()
             return {item[self.building_id_column]: item.get(feature_name) for item in data.get("results", [])}
         except requests.RequestException as e:
-            raise RuntimeError(f"Error fetching {feature_name}: {e}")
+            print(f"Error fetching {feature_name}: {e}")
+            return {}
 
     def run(self, gdf, feature_name):
         print(f"Fetching {feature_name} from the database... PLEASE WAIT.")

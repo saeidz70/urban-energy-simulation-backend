@@ -28,8 +28,9 @@ class ProjectId(Config):
     def run(self):
         """Run the project ID generation process."""
         try:
-            self.generate_project_id()
+            project_id = self.generate_project_id()
             print("Project ID generation process completed successfully.")
+            return project_id
         except Exception as e:
             print(f"Error during project ID generation: {e}")
             raise

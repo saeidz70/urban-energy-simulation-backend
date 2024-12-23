@@ -7,6 +7,9 @@ from model_extraction.preparation.read_data.db_b_id_fetcher import BuildingDatab
 
 
 class UserBuildingExtractor(Config):
+    """
+    Extracts user-provided buildings and augments with database building IDs if necessary.
+    """
     def __init__(self):
         super().__init__()
         self.load_config()
@@ -38,14 +41,22 @@ class UserBuildingExtractor(Config):
             print("Fetching building IDs from the database...")
             db_gdf = self.fetcher.run(user_gdf)
             if db_gdf is not None and not db_gdf.empty:
+                # Update source column for database results
+                db_gdf[self.source_column] = self.source_config.get("db", "Database")
+
                 # Merge database results with user buildings
                 user_gdf = user_gdf.merge(
-                    db_gdf[["geometry", "building_id"]],
+                    db_gdf[["geometry", "building_id", self.source_column]],
                     on="geometry",
                     how="left"
                 )
+
+                # Fill missing sources with "User" for unmatched user buildings
+                user_gdf[self.source_column] = user_gdf[self.source_column].fillna(
+                    self.source_config.get("user", "User"))
             else:
-                print("No valid response from the database. Continuing without building IDs.")
+                print("No valid response from the database for building IDs. Skipping...")
+                user_gdf[self.source_column] = self.source_config.get("user", "User")
         return user_gdf
 
     def run(self, boundary_polygon):
@@ -61,8 +72,10 @@ class UserBuildingExtractor(Config):
             user_gdf = user_gdf[user_gdf.geometry.apply(lambda geom: geom.within(boundary_polygon))]
             user_gdf[self.source_column] = self.source_config.get('user', 'User')
 
-            # Fetch building IDs if needed
+            # Fetch building IDs if needed and update the source column
             user_gdf = self._fetch_building_ids(user_gdf)
+
+            # Return the result with required columns
             return user_gdf[['geometry', self.source_column, 'building_id']]
         except Exception as e:
             print(f"Error during user building extraction: {e}")
