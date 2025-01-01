@@ -1,0 +1,68 @@
+flowchart TD
+    subgraph DBHeightFetcher["DBHeightFetcher"]
+        W["fetch_heights"]
+        L["Fetch height data from DB"]
+    end
+
+    subgraph BaseFeature["BaseFeature"]
+        C["run"]
+        D["process_feature"]
+        E["initialize_feature_column"]
+        F["Check Required Columns"]
+        G["retrieve_data_from_sources"]
+        H["Check invalid rows"]
+        O["Validate and Filter Height Values"]
+        P["Return GeoDataFrame"]
+    end
+
+    subgraph Utility["Utility"]
+        S["retrieve_data_from_sources"]
+        X["get_data_from_user"]
+        T{"Data Retrieved?"}
+        U["Merge Data"]
+        V["Get Data from DB"]
+        Y{"Data Retrieved?"}
+    end
+
+    subgraph Height["Height"]
+        J["Calculate Missing Data"]
+        K["Check Invalid Rows"]
+        M["Update Missing Values"]
+        I["Check Invalid Rows"]
+        N["Fetch height data from OSM"]
+        Z["Check Invalid Rows"]
+        Q["Calculate Missing Height Values using Kriging"]
+        A2["Check Invalid Rows"]
+        R["Warning: Missing height values"]
+        A3["Update Missing Values"]
+        A4["Update Missing Values"]
+    end
+
+    A["FeatureFactory"] -- run_feature --> B["Height"]
+    B -- run --> C
+    C --> D
+    D --> E & F
+    D --> G
+    G --> H & S
+    H -->|Invalid Rows? Yes| J
+    H -->|Invalid Rows? No| O
+    O --> P
+    S --> X
+    X --> T
+    T -->|Yes| U
+    T -->|No| V
+    V --> Y
+    Y -->|Yes| U
+    J --> K
+    K -->|Yes| L
+    L --> W
+    W --> M
+    M --> I
+    I -->|Invalid Rows? Yes| N
+    N --> A3
+    A3 --> Z
+    Z -->|Invalid Rows? Yes| Q
+    Q --> A4
+    A4 --> A2
+    A2 -->|Invalid Rows? Yes| R
+    A2 -->|No| O
