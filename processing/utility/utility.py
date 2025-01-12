@@ -79,7 +79,7 @@ class UtilityProcess(Config):
 
     def _get_feature_data(self, feature, buildings_gdf):
         """
-        Retrieve feature data from user file, database, or OSM.
+        Retrieve feature data from user file, database.
         """
         data = None
 

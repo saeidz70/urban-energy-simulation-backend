@@ -11,13 +11,12 @@
     "PROJECTED_CRS": 32632,
     "DEFAULT_CRS": 4326,
     "osm_overpass_url": "http://overpass-api.de/api/interpreter",
-    "database_url": "http://172.25.13.16:8002/api/new_validated_building_scenario/",
-    "db_census_url": "http://172.25.13.16:8002/api/census_spatial_post/",
-    "db_height_url": "http://172.25.13.16:8001/height/",
-    "db_building_id_url": "http://172.25.13.16:8001/building_id/",
-    "db_feature_url": "http://172.25.13.16:8001/",
+    "db_census_url": "http://172.25.13.13:8002/api/census_spatial_post/",
+    "db_height_url": "http://172.25.13.13:8001/height/",
+    "database_url": "http://172.25.13.13:8000/api/new_validated_building_scenario/lod1/",
+    "db_building_id_url": "http://172.25.13.13:8000/building_id/",
+    "db_feature_url": "http://172.25.13.13:8000/",
     "database_headers": {
-        "Authorization": "Token 90c6fa0c5d08c5a7a72f2b452757592e1c4b8c9b",
         "Content-Type": "application/json"
     },
     "OSM_tags": {
@@ -348,7 +347,7 @@
         "area": "Area",
         "n_floor": "building:levels",
         "net_leased_area": "net_leased_area",
-        "gross_floor_area": "net_leased_area",
+        "gross_floor_area": "gross_floor_area",
         "usage": "EDIFC_USO",
         "year_of_construction": "EPOCA_COST",
         "census_id": "SEZ2011",
@@ -366,55 +365,40 @@
         "geometry": "geometry"
     },
     "project_info": {
-      "project_id": "69551075-3295-4fa8-81d6-59e1104bfd00",
-      "scenario_id": "69551075-3295-4fa8-81d6-59e1104bfd00",
-      "projectName": "Torino",
-        "scenario_name": "",
+        "project_id": "4dbec813-3b4d-4f22-80de-4c05015d2de7",
+        "scenario_id": "4dbec813-3b4d-4f22-80de-4c05015d2de7",
+        "projectName": "withname!!!!!",
+        "scenario_name": "baseline",
         "scenarioList": [
-          "baseline"
+            "baseline"
         ],
         "translation": {},
-        "project_center": {
-            "latitude": 45.43676673688583,
-            "longitude": 7.606706647981852,
+        "mapCenter": {
+            "latitude": 45.062390240118546,
+            "longitude": 7.669854737192672,
             "zoom": 8
         },
-        "project_boundary": {
-            "type": "Polygon",
-          "coordinates": [
+        "polygonArray": [
             [
-              7.655926633390336,
-              45.067195959891066
+                7.669297294248253,
+                45.063112098956225
             ],
             [
-              7.656377244520445,
-              45.06916608375739
+                7.668611210623823,
+                45.062163083320286
             ],
             [
-              7.655068326475843,
-              45.06956010038213
+                7.670526527408327,
+                45.06163808918012
             ],
             [
-              7.653802323776968,
-              45.06954494594678
+                7.670983916490286,
+                45.06264768901755
             ],
             [
-              7.65262215176954,
-              45.067756694366004
-            ],
-            [
-              7.6543173079256634,
-              45.06686254759557
-            ],
-            [
-              7.655561852951677,
-              45.06639273606023
-            ],
-            [
-              7.655926633390336,
-              45.067195959891066
+                7.669297294248253,
+                45.063112098956225
             ]
-          ]
-        }
+        ]
     }
 }

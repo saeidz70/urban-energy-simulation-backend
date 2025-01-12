@@ -25,7 +25,6 @@ class DataHelper(Config):
         polygon_array = data.get("polygonArray")
         if not polygon_array:
             raise ValueError("No polygonArray data provided.")
-        print("Polygon data saved in config.json.")
         polygon_gdf = self.polygon_creator.user_polygon(polygon_array)
         self.manager.run_scenarios(polygon_gdf)
 
@@ -74,8 +73,8 @@ class DataHelper(Config):
             "scenario_name": data.get("scenario_name", ""),
             "scenarioList": data.get("scenarioList", []),
             "translation": data.get("translation", {}),
-            "project_center": data.get("mapCenter", {}),
-            "project_boundary": {"type": "Polygon", "coordinates": data.get("polygonArray", [])},
+            "mapCenter": data.get("mapCenter", {}),
+            "polygonArray": data.get("polygonArray", []),
         }
         self.config["project_info"] = project_info
         print("Project data saved in project section of config.json.")

@@ -39,8 +39,8 @@ class PrepMain(Config):
         return CleanGeoData().run(integrated_gdf)
 
     def run(self, polygon_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-        #  selected_census_gdf = self.fetch_census_data(polygon_gdf)
-        selected_census_gdf = self.select_census_sections(polygon_gdf)
+        selected_census_gdf = self.fetch_census_data(polygon_gdf)
+        # selected_census_gdf = self.select_census_sections(polygon_gdf)
         boundaries = self.get_boundaries(selected_census_gdf)
         buildings_gdf = self.extract_buildings(boundaries)
         integrated_gdf = self.integrate_data(buildings_gdf, selected_census_gdf)

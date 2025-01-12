@@ -83,7 +83,10 @@ class OutputFileGenerator(Config):
             json_result = json.loads(filtered_gdf.to_json(drop_id=True))
 
             # Add project info to the JSON structure
-            json_result['project_info'] = self.project_info
+            project_info = self.project_info.copy()  # Avoid mutating the original
+            project_info.pop("scenarioList", None)  # Remove scenarioList
+            project_info.pop("translation", None)  # Remove translation
+            json_result['project_info'] = project_info
 
             # Save the JSON result to a file
             with open(self.output_file, 'w') as f:
