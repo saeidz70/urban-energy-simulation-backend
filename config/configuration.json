@@ -11,11 +11,11 @@
     "PROJECTED_CRS": 32632,
     "DEFAULT_CRS": 4326,
     "osm_overpass_url": "http://overpass-api.de/api/interpreter",
-    "db_census_url": "http://172.25.13.13:8002/api/census_spatial_post/",
-    "db_height_url": "http://172.25.13.13:8001/height/",
-    "database_url": "http://172.25.13.13:8000/api/new_validated_building_scenario/lod1/",
-    "db_building_id_url": "http://172.25.13.13:8000/building_id/",
-    "db_feature_url": "http://172.25.13.13:8000/",
+    "db_census_url": "http://172.25.13.10:8001/api/census_spatial_post/",
+    "db_height_url": "http://172.25.13.10:8002/height/",
+    "database_url": "http://172.25.13.10:8000/api/new_validated_building_scenario/lod1/",
+    "db_building_id_url": "http://172.25.13.10:8000/api/building_id_fetcher/",
+    "db_feature_url": "http://172.25.13.10:8000/",
     "database_headers": {
         "Content-Type": "application/json"
     },
@@ -365,39 +365,55 @@
         "geometry": "geometry"
     },
     "project_info": {
-        "project_id": "4dbec813-3b4d-4f22-80de-4c05015d2de7",
-        "scenario_id": "4dbec813-3b4d-4f22-80de-4c05015d2de7",
-        "projectName": "withname!!!!!",
-        "scenario_name": "baseline",
+        "project_id": "fdb12221-21ef-4668-b5df-2863e5563e4c",
+        "scenario_id": "e123b6cf-e983-4961-a55b-372bce0fd2fc",
+        "projectName": "census_test_saeid",
+        "scenario_name": "demo_ener",
         "scenarioList": [
-            "baseline"
+            "update"
         ],
         "translation": {},
         "mapCenter": {
-            "latitude": 45.062390240118546,
-            "longitude": 7.669854737192672,
+            "latitude": 45.06076682485557,
+            "longitude": 7.6803360936659875,
             "zoom": 8
         },
         "polygonArray": [
             [
-                7.669297294248253,
-                45.063112098956225
+                7.6803305,
+                45.0606265
             ],
             [
-                7.668611210623823,
-                45.062163083320286
+                7.6802592,
+                45.06065179999999
             ],
             [
-                7.670526527408327,
-                45.06163808918012
+                7.6802653,
+                45.06077770000001
             ],
             [
-                7.670983916490286,
-                45.06264768901755
+                7.6802955,
+                45.060831
             ],
             [
-                7.669297294248253,
-                45.063112098956225
+                7.680317,
+                45.06086160000001
+            ],
+            [
+                7.6803565,
+                45.0609085
+            ],
+            [
+                7.6804225,
+                45.0608846
+            ],
+            [
+                7.6803801,
+                45.060696599999986
+            ],
+            [
+                7.6803305,
+                45.0606265
             ]
         ]
     }

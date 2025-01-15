@@ -37,7 +37,7 @@ class UserBuildingExtractor(Config):
     def _fetch_building_ids(self, user_gdf):
         """Fetch building IDs from the database if conditions are met."""
         scenario_list = self.config.get("project_info", {}).get("scenarioList", [])
-        if "baseline" not in scenario_list and "update" not in scenario_list:
+        if "update" not in scenario_list:
             print("Fetching building IDs from the database...")
             db_gdf = self.fetcher.run(user_gdf)
             if db_gdf is not None and not db_gdf.empty:

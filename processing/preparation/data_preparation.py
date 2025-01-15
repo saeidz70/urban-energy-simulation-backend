@@ -43,5 +43,6 @@ class PrepMain(Config):
         # selected_census_gdf = self.select_census_sections(polygon_gdf)
         boundaries = self.get_boundaries(selected_census_gdf)
         buildings_gdf = self.extract_buildings(boundaries)
+
         integrated_gdf = self.integrate_data(buildings_gdf, selected_census_gdf)
         return self.clean_data(integrated_gdf)

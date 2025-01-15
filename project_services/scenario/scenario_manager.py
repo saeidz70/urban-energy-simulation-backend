@@ -66,6 +66,7 @@ class ScenarioManager(Config):
 
         self.save_building_file(gdf)
         self.generate_output(gdf)
+        return gdf
 
     def save_building_file(self, gdf):
         if not os.path.exists(os.path.dirname(self.building_file)):

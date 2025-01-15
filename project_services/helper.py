@@ -46,7 +46,9 @@ class DataHelper(Config):
         buildings_gdf = self._load_building_geometry(building_geometry)
         self._save_building_geometry(buildings_gdf)
         polygon_gdf = self.polygon_creator.create_polygon_from_buildings()
-        self.manager.run_scenarios(polygon_gdf, buildings_gdf)
+
+        gdf = self.manager.run_scenarios(polygon_gdf, buildings_gdf)
+        return gdf
 
     def _save_project_info(self, data):
         self.load_config()
@@ -58,13 +60,13 @@ class DataHelper(Config):
         elif not self.scenario_id or not isinstance(self.scenario_id, str) or not self.scenario_id.strip():
             self.scenario_id = self.scenario_id_generator.run()
 
-        print(f"Project ID: {self.project_id}")
-        print(f"Scenario ID: {self.scenario_id}")
-
         # Check if scenarioList contains "baseline"
         if data.get("scenarioList") and "baseline" in data["scenarioList"]:
             print('ScenarioList contains "baseline"; setting scenario_id to match project_id.')
             self.scenario_id = self.project_id
+
+        print(f"Project ID: {self.project_id}")
+        print(f"Scenario ID: {self.scenario_id}")
 
         project_info = {
             "project_id": self.project_id,
@@ -83,18 +85,34 @@ class DataHelper(Config):
 
     def _load_building_geometry(self, building_geometry):
         try:
-            buildings_gdf = gpd.GeoDataFrame.from_features(building_geometry['features'])
+            # Load GeoDataFrame from features
+            buildings_gdf = gpd.GeoDataFrame.from_features(
+                building_geometry['features'], crs=self.default_crs
+            )
             print("Building geometry data loaded successfully.")
+
+            # Check CRS provided in the data
             input_crs = building_geometry.get("crs", {}).get("properties", {}).get("name")
             if input_crs:
                 print(f"CRS provided in data: {input_crs}")
-                if buildings_gdf.crs is None or buildings_gdf.crs.to_string() != input_crs:
-                    print(f"Setting CRS to input CRS: {input_crs}.")
+                try:
+                    input_crs = gpd.CRS.from_string(input_crs).to_epsg()  # Convert CRS to EPSG code
                     buildings_gdf.set_crs(input_crs, inplace=True, allow_override=True)
+                except Exception as crs_error:
+                    print(f"Error parsing CRS: {crs_error}. Defaulting to {self.default_crs}.")
+                    buildings_gdf.set_crs(self.default_crs, inplace=True)
             else:
-                print(f"No CRS provided in data. Setting default CRS: {self.default_crs}")
+                print(f"No CRS provided in data. Defaulting to {self.default_crs}.")
                 buildings_gdf.set_crs(self.default_crs, inplace=True)
+
+            # Ensure the geometry column is active
+            if "geometry" not in buildings_gdf.columns:
+                raise ValueError("No geometry column found in the provided data.")
+            buildings_gdf.set_geometry("geometry", inplace=True)
+
+            # Check and reproject CRS if needed
             return self._check_crs(buildings_gdf)
+
         except Exception as e:
             raise ValueError(f"Error processing building geometry: {e}")
 
