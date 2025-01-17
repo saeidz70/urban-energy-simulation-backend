@@ -1,7 +1,7 @@
 import geopandas as gpd
+from model_extraction.features_collection.feature_factory import FeatureFactory
 
 from config.config import Config
-from model_extraction.features_collection.feature_factory import FeatureFactory
 
 if __name__ == '__main__':
     config_path = 'config/configuration.json'
@@ -70,4 +70,3 @@ if __name__ == '__main__':
     #
     # census_selector = CensusSelector()
     # census_selector.run()
-

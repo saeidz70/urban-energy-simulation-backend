@@ -11,11 +11,11 @@
     "PROJECTED_CRS": 32632,
     "DEFAULT_CRS": 4326,
     "osm_overpass_url": "http://overpass-api.de/api/interpreter",
-    "db_census_url": "http://172.25.13.10:8001/api/census_spatial_post/",
-    "db_height_url": "http://172.25.13.10:8002/height/",
-    "database_url": "http://172.25.13.10:8000/api/new_validated_building_scenario/lod1/",
-    "db_building_id_url": "http://172.25.13.10:8000/api/building_id_fetcher/",
-    "db_feature_url": "http://172.25.13.10:8000/",
+    "db_census_url": "http://172.25.13.42:8001/api/census_spatial_post/",
+    "db_height_url": "http://172.25.13.42:8002/height/",
+    "database_url": "http://172.25.13.42:8000/api/new_validated_building_scenario/lod1/",
+    "db_building_id_url": "http://172.25.13.42:8000/api/building_id_fetcher/",
+    "db_feature_url": "http://172.25.13.42:8000/",
     "database_headers": {
         "Content-Type": "application/json"
     },
@@ -365,55 +365,51 @@
         "geometry": "geometry"
     },
     "project_info": {
-        "project_id": "fdb12221-21ef-4668-b5df-2863e5563e4c",
-        "scenario_id": "e123b6cf-e983-4961-a55b-372bce0fd2fc",
-        "projectName": "census_test_saeid",
-        "scenario_name": "demo_ener",
+        "project_id": "d2a01910-ed2d-4660-baa9-337943aed495",
+        "scenario_id": "d2a01910-ed2d-4660-baa9-337943aed495",
+        "projectName": "Torino",
+        "scenario_name": "cenisia",
         "scenarioList": [
-            "update"
+            "baseline"
         ],
         "translation": {},
         "mapCenter": {
-            "latitude": 45.06076682485557,
-            "longitude": 7.6803360936659875,
-            "zoom": 8
+            "latitude": 45.06188146075283,
+            "longitude": 7.67023850131627,
+            "zoom": 45
         },
         "polygonArray": [
             [
-                7.6803305,
-                45.0606265
+                7.655926633390336,
+                45.067195959891066
             ],
             [
-                7.6802592,
-                45.06065179999999
+                7.656377244520445,
+                45.06916608375739
             ],
             [
-                7.6802653,
-                45.06077770000001
+                7.655068326475843,
+                45.06956010038213
             ],
             [
-                7.6802955,
-                45.060831
+                7.653802323776968,
+                45.06954494594678
             ],
             [
-                7.680317,
-                45.06086160000001
+                7.65262215176954,
+                45.067756694366004
             ],
             [
-                7.6803565,
-                45.0609085
+                7.6543173079256634,
+                45.06686254759557
             ],
             [
-                7.6804225,
-                45.0608846
+                7.655561852951677,
+                45.06639273606023
             ],
             [
-                7.6803801,
-                45.060696599999986
-            ],
-            [
-                7.6803305,
-                45.0606265
+                7.655926633390336,
+                45.067195959891066
             ]
         ]
     }
