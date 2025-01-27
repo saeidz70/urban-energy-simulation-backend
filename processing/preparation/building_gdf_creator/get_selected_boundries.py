@@ -6,7 +6,7 @@ from config.config import Config
 class GetSelectedBoundaries(Config):
     def __init__(self):
         super().__init__()
-        self.output_file_path = self.config['selected_boundaries']
+        # self.output_file_path = self.config['selected_boundaries']
         self.polygons = []
         self.boundary_polygon = None
 
@@ -31,10 +31,9 @@ class GetSelectedBoundaries(Config):
         """Save the combined polygon boundary to the output file."""
         if self.boundary_polygon is None:
             raise ValueError("No combined polygon to save. Please run _combine_polygons() first.")
-
         boundary_polygon = gpd.GeoDataFrame(geometry=[self.boundary_polygon], crs="EPSG:4326")
-        boundary_polygon.to_file(self.output_file_path, driver="GeoJSON")
-        print(f"Polygon boundary extracted and saved to {self.output_file_path}.")
+        # boundary_polygon.to_file(self.output_file_path, driver="GeoJSON")
+        print(f"Polygon boundary extracted.")
         return boundary_polygon
 
     def run(self, selected_census_gdf):
