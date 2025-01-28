@@ -64,6 +64,13 @@ class BuildingPolygonCreator(Config):
 
     def _save_geojson(self, gdf):
         """Save a GeoDataFrame as a GeoJSON file."""
+
+        # Ensure the output directory exists
+        output_dir = os.path.dirname(self.output_path)
+        if not os.path.exists(output_dir):
+            print(f"Directory {output_dir} does not exist. Creating it now.")
+            os.makedirs(output_dir, exist_ok=True)
+
         gdf.set_crs(self.default_crs, inplace=True)
         gdf.to_file(self.output_path, driver='GeoJSON')
         print(f"GeoJSON file saved to {self.output_path}")

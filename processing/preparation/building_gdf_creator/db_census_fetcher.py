@@ -1,4 +1,5 @@
 import json
+import os
 
 import geopandas as gpd
 import requests
@@ -76,6 +77,13 @@ class DbCensusFetcher(Config):
             # Set CRS if not already set
             self.selected_census_gdf.set_crs(self.default_crs, inplace=True)
         print(f"CRS is set to: {self.default_crs}")
+
+        # Ensure the output directory exists
+        output_dir = os.path.dirname(self.census_data)
+        if not os.path.exists(output_dir):
+            print(f"Directory {output_dir} does not exist. Creating it now.")
+            os.makedirs(output_dir, exist_ok=True)
+
         self.selected_census_gdf.to_file(self.census_data, driver='GeoJSON')
         print(f"Census data saved to {self.census_data}.")
         return self.selected_census_gdf

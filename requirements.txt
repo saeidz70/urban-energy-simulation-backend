@@ -8,4 +8,3 @@ Requests==2.32.3
 rioxarray==0.18.0
 Shapely==2.0.6
 fiona==1.9.6
-pyogrio==0.10.0

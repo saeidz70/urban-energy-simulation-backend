@@ -1,3 +1,5 @@
+import os
+
 import geopandas as gpd
 
 from config.config import Config
@@ -14,6 +16,13 @@ class DataIntegration(Config):
         return gdf2
 
     def save_integrated(self, integrated_gdf):
+
+        # Ensure the output directory exists
+        output_dir = os.path.dirname(self.buildings_geojson_path)
+        if not os.path.exists(output_dir):
+            print(f"Directory {output_dir} does not exist. Creating it now.")
+            os.makedirs(output_dir, exist_ok=True)
+
         integrated_gdf.to_file(self.buildings_geojson_path, driver='GeoJSON')
         print(f"Integrated data saved to {self.buildings_geojson_path}.")
 

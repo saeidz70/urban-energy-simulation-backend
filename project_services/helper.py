@@ -117,10 +117,12 @@ class DataHelper(Config):
             raise ValueError(f"Error processing building geometry: {e}")
 
     def _save_building_geometry(self, buildings_gdf):
+
         user_file_dir = os.path.dirname(self.user_building_file)
         if not os.path.exists(user_file_dir):
             print(f"Directory {user_file_dir} does not exist. Creating it now.")
             os.makedirs(user_file_dir)
+
         buildings_gdf.to_file(self.user_building_file, driver="GeoJSON")
         print(f"Building geometry saved to {self.user_building_file} in CRS {self.default_crs}.")
         self.config["user_building_file"] = self.user_building_file

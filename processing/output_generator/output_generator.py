@@ -88,6 +88,12 @@ class OutputFileGenerator(Config):
             project_info.pop("translation", None)  # Remove translation
             json_result['project_info'] = project_info
 
+            # Ensure the output directory exists
+            output_dir = os.path.dirname(self.output_file)
+            if not os.path.exists(output_dir):
+                print(f"Directory {output_dir} does not exist. Creating it now.")
+                os.makedirs(output_dir, exist_ok=True)
+
             # Save the JSON result to a file
             with open(self.output_file, 'w') as f:
                 json.dump(json_result, f, indent=4)

@@ -1,4 +1,5 @@
 import logging
+import os
 
 import geopandas as gpd
 import pandas as pd
@@ -144,6 +145,13 @@ class BuildingManager(Config):
             raise ValueError("The final GeoDataFrame is empty and cannot be saved.")
 
         logging.info(f"Saving {len(buildings_gdf)} buildings to {self.output_file_path}...")
+
+        # Ensure the output directory exists
+        output_dir = os.path.dirname(self.output_file_path)
+        if not os.path.exists(output_dir):
+            print(f"Directory {output_dir} does not exist. Creating it now.")
+            os.makedirs(output_dir, exist_ok=True)
+
         buildings_gdf.to_file(self.output_file_path, driver="GeoJSON")
         logging.info("Building data saved successfully.")
 

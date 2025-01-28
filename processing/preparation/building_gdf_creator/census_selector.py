@@ -1,3 +1,5 @@
+import os
+
 import geopandas as gpd
 
 from config.config import Config
@@ -47,6 +49,12 @@ class CensusSelector(Config):
         columns_to_keep = ['geometry', 'SEZ2011', 'E3', 'E4', 'E8', 'E9', 'E10', 'E11', 'E12', 'E13', 'E14', 'E15',
                            'E16', 'PF1', 'P1']
         self.selected_census_gdf = self.selected_census_gdf[columns_to_keep]
+
+        # Ensure the output directory exists
+        output_dir = os.path.dirname(self.output_path)
+        if not os.path.exists(output_dir):
+            print(f"Directory {output_dir} does not exist. Creating it now.")
+            os.makedirs(output_dir, exist_ok=True)
 
         self.selected_census_gdf.to_file(self.output_path, driver='GeoJSON')
         print(f"Selected census sections successfully saved to {self.output_path}")
