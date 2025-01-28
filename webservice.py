@@ -4,7 +4,7 @@ import cherrypy
 from cherrypy import response
 
 from config.config import Config
-from project_services.helper import DataHelper  # Assuming helper is correctly set up here
+from project_services.helper import DataHelper
 
 
 # Base server class with shared configuration and helper
@@ -133,7 +133,7 @@ if __name__ == '__main__':
         }
     }
 
-    cherrypy.server.socket_host = '192.168.177.23'
+    cherrypy.server.socket_host = '0.0.0.0'
     cherrypy.config.update({'server.socket_port': 8080})
     cherrypy.tools.CORS = cherrypy.Tool('before_handler', CORS)
 

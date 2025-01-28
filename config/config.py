@@ -3,7 +3,7 @@ import json
 
 class Config:
     def __init__(self, config_path=None):
-        self.config_path = config_path or '/Users/saeidzolfaghari/PycharmProjects/Automatic_Scenario_creation/config/configuration.json'
+        self.config_path = config_path or './config/configuration.json'
         self.config = {}
         self.load_config()  # Load configuration at initialization
 

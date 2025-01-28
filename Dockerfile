@@ -1,21 +1,24 @@
 # Use an official Python image as the base image
-# The specified version should match your local Python (e.g., 3.12)
 FROM python:3.12-slim
 
-# Set the working directory in the container
+# Set the working directory
 WORKDIR /app
 
-# Copy the project files to the container
-COPY . .
-
-# Install Python dependencies
+# Copy and install dependencies first (leveraging caching)
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Pass environment variables into the container
-ENV CONFIG_PATH=/config/configuration.json
+# Copy the configuration file
+COPY config/configuration.json /config/configuration.json
 
-# Expose the port that your web application listens on
+# Copy the rest of the application
+COPY . .
+
+# Expose the port that the application listens on
 EXPOSE 8080
 
-# Specify the command to run your application
+# Set environment variable for configuration
+ENV CONFIG_PATH=/config/configuration.json
+
+# Specify the command to run the application
 CMD ["python", "webservice.py"]
