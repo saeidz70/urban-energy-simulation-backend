@@ -1,9 +1,15 @@
+import logging
+
 import requests
 
 from config.config import Config
 
 
 class DBHeightFetcher(Config):
+    """
+    Fetches height data from a remote database and updates a GeoDataFrame.
+    """
+
     def __init__(self):
         """
         Initializes the DBHeightFetcher with database configurations.
@@ -14,10 +20,16 @@ class DBHeightFetcher(Config):
         self.building_id_column = "building_id"
         self.geometry_column = "geometry"
 
+        # Configure logging
+        self.logger = logging.getLogger(__name__)
+        logging.basicConfig(level=logging.INFO)
+
     def fetch_heights(self, gdf, feature_name):
         """
-        Fetches the data for the specified feature from a remote server.
+        Fetches height values from the remote database for the given GeoDataFrame.
         """
+        self.logger.info(f"🚀 Sending request to fetch {feature_name} for {len(gdf)} buildings...")
+
         features = [
             {
                 "type": "Feature",
@@ -27,24 +39,38 @@ class DBHeightFetcher(Config):
             for _, row in gdf.iterrows()
         ]
         payload = {"type": "FeatureCollection", "features": features}
+
         try:
             response = requests.post(self.db_url, json=payload, headers=self.headers)
             response.raise_for_status()
             data = response.json()
-            return {item[self.building_id_column]: item.get(feature_name) for item in data.get("results", [])}
+            results = data.get("results", [])
+
+            if not results:
+                self.logger.warning(f"⚠️ No height data returned for {feature_name}.")
+                return {}
+
+            self.logger.info(f"✅ Successfully retrieved height data for {len(results)} buildings.")
+            return {item[self.building_id_column]: item.get(feature_name) for item in results}
+
         except requests.RequestException as e:
-            print(f"Error fetching {feature_name}: {e}")
+            self.logger.error(f"🚨 Error fetching {feature_name}: {e}")
             return {}
 
     def run(self, gdf, feature_name):
-        print(f"Fetching {feature_name} from the database... PLEASE WAIT.")
         """
-        Updates the GeoDataFrame with the fetched feature values.
+        Updates the GeoDataFrame with the fetched height values.
         """
+        self.logger.info(f"📡 Fetching {feature_name} from the database... PLEASE WAIT.")
+
         feature_map = self.fetch_heights(gdf, feature_name)
+
         if not feature_map:
-            print(f"No data returned for {feature_name}.")
+            self.logger.warning(f"⚠️ No height data found for {feature_name}. Returning original GeoDataFrame.")
             return gdf
+
+        # Update the feature in the GeoDataFrame
         gdf[feature_name] = gdf[self.building_id_column].map(feature_map).fillna(gdf.get(feature_name))
-        print(f"Successfully fetched {feature_name} from the database.")
+
+        self.logger.info(f"✅ Successfully updated {feature_name} for {len(feature_map)} buildings.")
         return gdf
