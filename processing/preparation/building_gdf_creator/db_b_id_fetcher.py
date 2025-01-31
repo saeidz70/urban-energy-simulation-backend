@@ -3,69 +3,86 @@ import logging
 
 import geopandas as gpd
 import requests
-from shapely.geometry import mapping, shape
+from shapely.geometry import shape, mapping
 
 from config.config import Config
 
 
 class BuildingDatabaseFetcher(Config):
+    """Fetch building IDs from the database and track their source."""
+
     def __init__(self):
         super().__init__()
         self.load_config()
         self.db_url = self.config.get("db_building_id_url")
         self.headers = self.config.get("database_headers", {})
         self.default_crs = f"EPSG:{self.config.get('DEFAULT_CRS', 4326)}"
+
+        # Load building source configurations
+        building_source_config = self.config.get("building_source", {})
+        self.source_config = building_source_config.get("sources", {
+            "osm": "OpenStreetMap",
+            "user": "User",
+            "db": "Database"
+        })
+
         logging.basicConfig(level=logging.INFO)
 
-    def validate_geometries(self, buildings_gdf):
-        """Validate geometries in the GeoDataFrame."""
-        if buildings_gdf.empty:
-            logging.warning("The input GeoDataFrame is empty.")
-            return False
-        if not buildings_gdf.is_valid.all():
-            logging.error("Invalid geometries found in the GeoDataFrame.")
-            return False
-        return True
+    def run(self, buildings_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+        """Fetch building IDs, merge results, and track source of data."""
 
-    def run(self, buildings_gdf):
-        """Fetch building IDs for user-provided geometries."""
-        if not self.validate_geometries(buildings_gdf):
-            return gpd.GeoDataFrame(columns=["geometry", "building_id"])
+        if buildings_gdf.empty or "geometry" not in buildings_gdf.columns:
+            logging.warning("Input GeoDataFrame is empty or missing geometry.")
+            return buildings_gdf
 
-        # Ensure the CRS matches the default CRS
-        if buildings_gdf.crs != self.default_crs:
-            logging.info(f"Reprojecting GeoDataFrame to {self.default_crs}.")
+        # Ensure valid geometries and correct CRS
+        buildings_gdf = buildings_gdf[buildings_gdf.geometry.notnull()]
+        if buildings_gdf.crs and buildings_gdf.crs.to_string() != self.default_crs:
             buildings_gdf = buildings_gdf.to_crs(self.default_crs)
 
-        payload = {
-            "features": [
-                {"type": "Feature", "geometry": mapping(geom)}
-                for geom in buildings_gdf.geometry
-            ]
-        }
+        # Ensure "building_source" column exists
+        if "building_source" not in buildings_gdf.columns:
+            buildings_gdf["building_source"] = None  # Default to None
 
+        # Prepare API payload
+        payload = {"features": [{"type": "Feature", "geometry": mapping(geom)} for geom in buildings_gdf.geometry]}
         logging.debug(f"Request Payload: {json.dumps(payload, indent=4)}")
 
         try:
-            response = requests.post(self.db_url, json=payload, headers=self.headers)
+            response = requests.post(self.db_url, json=payload, headers=self.headers, timeout=10)
             response.raise_for_status()
-
-            logging.info(f"Response Status Code: {response.status_code}")
             results = response.json().get("results", [])
 
-            # Validate results
-            features = []
-            for result in results:
-                try:
-                    geometry = shape(result["geometry"])
-                    building_id = result["building_id"]
-                    features.append({"geometry": geometry, "building_id": building_id})
-                except (KeyError, TypeError, ValueError) as e:
-                    logging.warning(f"Invalid result entry skipped: {result}, error: {str(e)}")
+            if not results:
+                logging.info("No matching buildings found in the database.")
+                return buildings_gdf  # Return original dataset
 
-            # Ensure geometry is valid and CRS is assigned
-            buildings_gdf = gpd.GeoDataFrame(features, crs=self.default_crs)
-            return buildings_gdf[buildings_gdf.geometry.notnull()]  # Filter invalid geometries
+            # Process valid results
+            db_results = gpd.GeoDataFrame([
+                {"geometry": shape(res["geometry"]), "building_id": res["building_id"]}
+                for res in results if res.get("geometry") and res.get("building_id")
+            ], crs=self.default_crs)
+
+            if db_results.empty:
+                return buildings_gdf  # No valid results, return original data
+
+            # Merge using Well-Known Binary (WKB) for accurate geometry comparison
+            db_results["geometry_wkb"] = db_results.geometry.apply(lambda geom: geom.wkb)
+            buildings_gdf["geometry_wkb"] = buildings_gdf.geometry.apply(lambda geom: geom.wkb)
+
+            merged_gdf = buildings_gdf.merge(
+                db_results[["geometry_wkb", "building_id"]],
+                how="left",
+                on="geometry_wkb"
+            ).drop(columns=["geometry_wkb"])
+
+            # Assign "Database" source where building_id is found
+            merged_gdf.loc[merged_gdf["building_id"].notna(), "building_source"] = self.source_config.get("db",
+                                                                                                          "Database")
+
+            logging.info(f"Merged {len(db_results)} buildings with database IDs and updated sources.")
+            return merged_gdf
+
         except requests.exceptions.RequestException as e:
-            logging.error(f"Error during request: {str(e)}")
-            return gpd.GeoDataFrame(columns=["geometry", "building_id"])
+            logging.error(f"Database request failed: {e}")
+            return buildings_gdf  # Return original dataset on failure
