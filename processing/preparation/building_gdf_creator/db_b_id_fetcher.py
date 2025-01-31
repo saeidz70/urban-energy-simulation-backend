@@ -70,6 +70,9 @@ class BuildingDatabaseFetcher(Config):
                 db_results["building_id"] = None
             db_results["building_id"] = db_results["building_id"].astype("string")
 
+            # ✅ Log how many building IDs were found in the database
+            logging.info(f"Found {db_results.shape[0]} matching buildings in the database.")
+
             if db_results.empty:
                 return buildings_gdf  # No valid results, return original data
 
@@ -91,7 +94,7 @@ class BuildingDatabaseFetcher(Config):
             merged_gdf.loc[merged_gdf["building_id"].notna(), "building_source"] = self.source_config.get("db",
                                                                                                           "Database")
 
-            logging.info(f"Merged {len(db_results)} buildings with database IDs and updated sources.")
+            logging.info(f"Merged {db_results.shape[0]} buildings with database IDs and updated sources.")
 
             return merged_gdf  # ✅ Returns a valid GeoDataFrame following GeoJSON rules
 
