@@ -1,5 +1,4 @@
 import logging
-import os
 
 import geopandas as gpd
 import pandas as pd
@@ -14,8 +13,11 @@ from processing.preparation.building_gdf_creator.user_building_extractor import 
 
 class BuildingManager(Config):
     """
-    Manage building extraction and merging from User, OSM, and Database sources,
-    with priority: 1. Database, 2. User, 3. OSM.
+    Manage building extraction and merging from User, OSM, and Database sources.
+    Priority order:
+    1. Buildings with `building_id` from the database
+    2. User file buildings
+    3. OSM buildings
     """
 
     def __init__(self):
@@ -78,7 +80,7 @@ class BuildingManager(Config):
 
     def _fetch_database_ids(self, combined_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         """
-        Query the database for building IDs and prioritize the `Database` source.
+        Query the database for building IDs, handle duplicate footprints, and merge results.
         """
         if combined_gdf.empty or 'geometry' not in combined_gdf.columns:
             raise ValueError("The combined GeoDataFrame is empty or missing a geometry column.")
@@ -98,11 +100,21 @@ class BuildingManager(Config):
 
         logging.info(f"Fetched {len(db_results)} building IDs from the database.")
 
-        # Ensure both datasets have a common format
+        # Convert geometries to WKB format for accurate duplicate detection
         db_results["geometry_wkb"] = db_results.geometry.apply(lambda geom: geom.wkb)
+
+        # Step 1: Handle Duplicate Footprints in `db_results`
+        duplicate_wkb = db_results["geometry_wkb"].duplicated(keep=False)  # Mark duplicates
+        if duplicate_wkb.any():
+            logging.warning(f"Found {duplicate_wkb.sum()} duplicate building footprints in the database response.")
+
+            # Keep the first occurrence per footprint
+            db_results = db_results[~duplicate_wkb | db_results.duplicated(subset=["geometry_wkb"], keep="first")]
+
+        # Convert `combined_gdf` geometries to WKB for merging
         combined_gdf["geometry_wkb"] = combined_gdf.geometry.apply(lambda geom: geom.wkb)
 
-        # Merge database results with the combined dataset
+        # Step 2: Merge database results with the combined dataset
         merged_gdf = combined_gdf.merge(
             db_results[["geometry_wkb", "building_id"]],
             how="left",
@@ -113,29 +125,12 @@ class BuildingManager(Config):
         if "building_id" not in merged_gdf.columns:
             merged_gdf["building_id"] = None
 
-        # Set source priority: 1. Database, 2. User, 3. OSM
+        # Set priority: 1. Database, 2. User, 3. OSM
         merged_gdf.loc[merged_gdf["building_id"].notna(), self.source_column] = self.source_config.get("db", "Database")
         merged_gdf[self.source_column] = merged_gdf[self.source_column].fillna(self.source_config.get("user", "User"))
 
         logging.info("Successfully merged database building IDs with correct source prioritization.")
         return merged_gdf
-
-    def _save_buildings(self, buildings_gdf: gpd.GeoDataFrame):
-        """
-        Save the final GeoDataFrame to a GeoJSON file.
-        """
-        if buildings_gdf.empty:
-            raise ValueError("The final GeoDataFrame is empty and cannot be saved.")
-
-        logging.info(f"Saving {len(buildings_gdf)} buildings to {self.output_file_path}...")
-
-        # Ensure the output directory exists
-        output_dir = os.path.dirname(self.output_file_path)
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir, exist_ok=True)
-
-        buildings_gdf.to_file(self.output_file_path, driver="GeoJSON")
-        logging.info("Building data saved successfully.")
 
     def run(self, boundaries: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         """
@@ -162,9 +157,6 @@ class BuildingManager(Config):
 
         # Step 5: Fetch and integrate Database building IDs
         final_gdf = self._fetch_database_ids(combined_gdf)
-
-        # Step 6: Save the final output
-        self._save_buildings(final_gdf)
 
         logging.info("Processing completed successfully.")
         return final_gdf
