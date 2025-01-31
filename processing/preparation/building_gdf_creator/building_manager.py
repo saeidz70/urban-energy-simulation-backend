@@ -42,50 +42,47 @@ class BuildingManager(Config):
         logging.basicConfig(level=logging.INFO)
 
     def _load_boundary(self, boundaries: gpd.GeoDataFrame) -> Polygon:
-        """
-        Combine and validate all boundary geometries into a single valid Polygon.
-        """
+        """Combine and validate all boundary geometries into a single valid Polygon."""
         if boundaries.empty:
-            raise ValueError("Boundary GeoDataFrame is empty.")
+            raise ValueError("🚨 ERROR: Boundary GeoDataFrame is empty.")
 
-        logging.info(f"Processing {len(boundaries)} boundary geometries...")
+        logging.info(f"🔹 Processing {len(boundaries)} boundary geometries...")
         valid_boundaries = boundaries[boundaries.geometry.is_valid].geometry
 
         if valid_boundaries.empty:
-            raise ValueError("No valid boundary geometries found!")
+            raise ValueError("🚨 ERROR: No valid boundary geometries found!")
 
         combined_boundary = unary_union(valid_boundaries)
 
         # If result is MultiPolygon, choose the largest Polygon
         if isinstance(combined_boundary, MultiPolygon):
-            logging.warning("Boundary is a MultiPolygon, selecting the largest polygon.")
+            logging.warning("⚠️ Boundary is a MultiPolygon, selecting the largest polygon.")
             combined_boundary = max(combined_boundary.geoms, key=lambda p: p.area)
 
-        logging.info("Successfully combined boundary geometries.")
+        logging.info("✅ Successfully combined boundary geometries.")
         return combined_boundary
 
     def _remove_overlapping_osm_buildings(self, osm_gdf: gpd.GeoDataFrame,
                                           user_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-        """
-        Remove overlapping OSM geometries, prioritizing user-provided buildings.
-        """
+        """Remove overlapping OSM geometries, prioritizing user-provided buildings."""
         if user_gdf.empty:
-            logging.info("No user-provided buildings; keeping all OSM buildings.")
+            logging.info("🔹 No user-provided buildings found. Keeping all OSM buildings.")
             return osm_gdf
 
+        initial_osm_count = len(osm_gdf)
         user_union = unary_union(user_gdf.geometry)
         filtered_osm_gdf = osm_gdf[~osm_gdf.geometry.intersects(user_union)]
-        logging.info(f"Removed {len(osm_gdf) - len(filtered_osm_gdf)} overlapping OSM buildings.")
+        removed_count = initial_osm_count - len(filtered_osm_gdf)
+
+        logging.info(f"✅ Removed {removed_count} OSM buildings that overlapped with User buildings.")
         return filtered_osm_gdf
 
     def _fetch_database_ids(self, combined_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-        """
-        Query the database for building IDs, handle duplicate footprints, and merge results.
-        """
+        """Query the database for building IDs, handle duplicate footprints, and merge results."""
         if combined_gdf.empty or 'geometry' not in combined_gdf.columns:
-            raise ValueError("The combined GeoDataFrame is empty or missing a geometry column.")
+            raise ValueError("🚨 ERROR: The combined GeoDataFrame is empty or missing a geometry column.")
 
-        logging.info(f"Querying the database for {len(combined_gdf)} geometries...")
+        logging.info(f"🔹 Querying the database for {len(combined_gdf)} building geometries...")
 
         # Ensure "building_source" column exists
         if self.source_column not in combined_gdf.columns:
@@ -95,10 +92,10 @@ class BuildingManager(Config):
         db_results = self.db_id_fetcher.run(combined_gdf)
 
         if db_results is None or db_results.empty:
-            logging.info("No matching buildings found in the database.")
+            logging.info("🔹 No matching buildings found in the database.")
             return combined_gdf
 
-        logging.info(f"Fetched {len(db_results)} building IDs from the database.")
+        logging.info(f"✅ Fetched {len(db_results)} building IDs from the database.")
 
         # Convert geometries to WKB format for accurate duplicate detection
         db_results["geometry_wkb"] = db_results.geometry.apply(lambda geom: geom.wkb)
@@ -106,7 +103,8 @@ class BuildingManager(Config):
         # Step 1: Handle Duplicate Footprints in `db_results`
         duplicate_wkb = db_results["geometry_wkb"].duplicated(keep=False)  # Mark duplicates
         if duplicate_wkb.any():
-            logging.warning(f"Found {duplicate_wkb.sum()} duplicate building footprints in the database response.")
+            duplicate_count = duplicate_wkb.sum()
+            logging.warning(f"⚠️ Found {duplicate_count} duplicate building footprints in the database response.")
 
             # Keep the first occurrence per footprint
             db_results = db_results[~duplicate_wkb | db_results.duplicated(subset=["geometry_wkb"], keep="first")]
@@ -129,23 +127,24 @@ class BuildingManager(Config):
         merged_gdf.loc[merged_gdf["building_id"].notna(), self.source_column] = self.source_config.get("db", "Database")
         merged_gdf[self.source_column] = merged_gdf[self.source_column].fillna(self.source_config.get("user", "User"))
 
-        logging.info("Successfully merged database building IDs with correct source prioritization.")
+        logging.info("✅ Successfully merged database building IDs with correct source prioritization.")
         return merged_gdf
 
     def run(self, boundaries: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-        """
-        Main method to process buildings from multiple sources and combine them.
-        """
-        logging.info("Loading boundaries...")
+        """Main method to process buildings from multiple sources and combine them."""
+        logging.info("🚀 Starting BuildingManager pipeline...")
+
         boundary_polygon = self._load_boundary(boundaries)
 
         # Step 1: Extract User buildings
         user_gdf = self.user_extractor.run(boundary_polygon)
+        logging.info(f"📌 Retrieved {len(user_gdf)} buildings from User data.")
         if not user_gdf.empty:
             user_gdf[self.source_column] = self.source_config.get("user", "User")
 
         # Step 2: Extract OSM buildings
         osm_gdf = self.osm_extractor.run(boundary_polygon)
+        logging.info(f"📌 Retrieved {len(osm_gdf)} buildings from OSM data.")
         if not osm_gdf.empty:
             osm_gdf[self.source_column] = self.source_config.get("osm", "OpenStreetMap")
 
@@ -154,9 +153,11 @@ class BuildingManager(Config):
 
         # Step 4: Combine User and OSM buildings
         combined_gdf = gpd.GeoDataFrame(pd.concat([user_gdf, osm_gdf], ignore_index=True), crs=user_gdf.crs)
+        logging.info(f"✅ Combined dataset contains {len(combined_gdf)} buildings before database check.")
 
         # Step 5: Fetch and integrate Database building IDs
         final_gdf = self._fetch_database_ids(combined_gdf)
+        logging.info(f"🏗️ Final dataset contains {len(final_gdf)} buildings.")
 
-        logging.info("Processing completed successfully.")
+        logging.info("✅ BuildingManager pipeline completed successfully.")
         return final_gdf

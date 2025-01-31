@@ -1,3 +1,5 @@
+import os
+
 import geopandas as gpd
 
 from config.config import Config
@@ -6,7 +8,7 @@ from config.config import Config
 class GetSelectedBoundaries(Config):
     def __init__(self):
         super().__init__()
-        # self.output_file_path = self.config['selected_boundaries']
+        self.output_file_path = self.config['selected_boundaries']
         self.polygons = []
         self.boundary_polygon = None
 
@@ -31,8 +33,14 @@ class GetSelectedBoundaries(Config):
         """Save the combined polygon boundary to the output file."""
         if self.boundary_polygon is None:
             raise ValueError("No combined polygon to save. Please run _combine_polygons() first.")
+
+        user_file_dir = os.path.dirname(self.output_file_path)
+        if not os.path.exists(user_file_dir):
+            print(f"Directory {user_file_dir} does not exist. Creating it now.")
+            os.makedirs(user_file_dir)
+
         boundary_polygon = gpd.GeoDataFrame(geometry=[self.boundary_polygon], crs="EPSG:4326")
-        # boundary_polygon.to_file(self.output_file_path, driver="GeoJSON")
+        boundary_polygon.to_file(self.output_file_path, driver="GeoJSON")
         print(f"Polygon boundary extracted.")
         return boundary_polygon
 
