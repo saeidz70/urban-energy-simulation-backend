@@ -5,6 +5,7 @@
     "polygon_from_building": "./data_source/output_files/polygon_from_building.geojson",
     "census_path": "./data_source/input_files/shp/Torino_sezCens_data.geojson",
     "db_census_sections": "./data_source/output_files/db_census_section.geojson",
+    "selected_boundaries": "./data_source/output_files/selected_boundaries.geojson",
     "PROJECTED_CRS": 32632,
     "DEFAULT_CRS": 4326,
     "osm_overpass_url": "http://overpass-api.de/api/interpreter",
