@@ -38,6 +38,14 @@ class Height(BaseFeature):
         if not invalid_rows.empty:
             self.logger.info("🌍 Fetching height data from OSM...")
             osm_data = self._get_osm_data(self.feature_name, gdf)
+
+            # Convert OSM data to numeric to avoid type issues
+            if not osm_data.empty:
+                osm_data[self.feature_name] = pd.to_numeric(
+                    osm_data[self.feature_name], errors="coerce"
+                )
+                print(f"Converted OSM data for height: {osm_data[self.feature_name].unique()}")
+
             gdf = self.update_missing_values(gdf, osm_data, self.feature_name)
             invalid_rows = self.check_invalid_rows(gdf, self.feature_name)
             self.logger.info(f"✅ Step 2: {len(invalid_rows)} values still missing after OSM fetch.")
